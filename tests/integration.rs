@@ -1,6 +1,7 @@
 use panini::config::Config;
 use panini::engine::declension::{DeclensionInput, derive_declension};
 use panini::engine::sandhi::{SandhiInput, analyze_sandhi, derive_sandhi};
+use panini::engine::TraceStep;
 use panini::rule_cache::RuleCache;
 use panini::vidya_client::VidyaClient;
 
@@ -219,6 +220,113 @@ async fn derive_deva_paradigm() {
         assert!(
             result.trace.iter().any(|t| t.rule_ref.is_some()),
             "trace should include sutra citations for case={case} number={number}"
+        );
+    }
+}
+
+fn generate_paradigm(
+    cache: &RuleCache,
+    stem: &str,
+    stem_type: &str,
+) -> Vec<(String, String, Result<(String, Vec<TraceStep>), String>)> {
+    let cases = ["1", "2", "3", "4", "5", "6", "7", "8"];
+    let numbers = ["sg", "du", "pl"];
+    let mut cells = Vec::with_capacity(24);
+    for case in cases {
+        for number in numbers {
+            let input = DeclensionInput {
+                stem: stem.into(),
+                stem_type: stem_type.into(),
+                case: case.into(),
+                number: number.into(),
+            };
+            match derive_declension(
+                cache.get_rules("sup_suffix"),
+                cache.get_rules("pratyaya_rule"),
+                cache.get_rules("anga_rule"),
+                cache.get_rules("sandhi_rule"),
+                cache.get_rules("tripadi_rule"),
+                input,
+            ) {
+                Ok(result) => {
+                    let form = result.output["form"].as_str().unwrap().to_string();
+                    cells.push((case.into(), number.into(), Ok((form, result.trace))));
+                }
+                Err(e) => {
+                    cells.push((case.into(), number.into(), Err(e.to_string())));
+                }
+            }
+        }
+    }
+    cells
+}
+
+#[tokio::test]
+async fn paradigm_deva_complete() {
+    let cache = build_cache().await;
+    let cells = generate_paradigm(&cache, "deva", "a-stem-m");
+
+    assert_eq!(cells.len(), 24, "paradigm should have 24 cells");
+
+    let expected = vec![
+        ("1", "sg", "devaḥ"),
+        ("1", "du", "devau"),
+        ("1", "pl", "devāḥ"),
+        ("2", "sg", "devam"),
+        ("2", "du", "devau"),
+        ("2", "pl", "devān"),
+        ("3", "sg", "devena"),
+        ("3", "du", "devābhyām"),
+        ("3", "pl", "devaiḥ"),
+        ("4", "sg", "devāya"),
+        ("4", "du", "devābhyām"),
+        ("4", "pl", "devebhyaḥ"),
+        ("5", "sg", "devāt"),
+        ("5", "du", "devābhyām"),
+        ("5", "pl", "devebhyaḥ"),
+        ("6", "sg", "devasya"),
+        ("6", "du", "devayoḥ"),
+        ("6", "pl", "devānām"),
+        ("7", "sg", "deve"),
+        ("7", "du", "devayoḥ"),
+        ("7", "pl", "deveṣu"),
+        ("8", "sg", "deva"),
+        ("8", "du", "devau"),
+        ("8", "pl", "devāḥ"),
+    ];
+
+    let mut errors = Vec::new();
+    for (case, number, exp) in expected {
+        let cell = cells
+            .iter()
+            .find(|(c, n, _)| c == case && n == number)
+            .unwrap_or_else(|| panic!("missing cell case={case} number={number}"));
+        match &cell.2 {
+            Ok((form, trace)) => {
+                if form != exp {
+                    errors.push(format!("case={case} number={number}: got {form}, expected {exp}"));
+                }
+                if !trace.iter().any(|t| t.rule_ref.is_some()) {
+                    errors.push(format!("case={case} number={number}: trace missing sūtra citations"));
+                }
+            }
+            Err(e) => {
+                errors.push(format!("case={case} number={number}: derivation failed: {e}"));
+            }
+        }
+    }
+    assert!(errors.is_empty(), "paradigm errors:\n{}", errors.join("\n"));
+}
+
+#[tokio::test]
+async fn paradigm_cell_errors_dont_fail_whole_request() {
+    let cache = build_cache().await;
+    let cells = generate_paradigm(&cache, "deva", "nonexistent-stem-type");
+    assert_eq!(cells.len(), 24, "should still produce 24 cells");
+    for (case, number, result) in &cells {
+        assert!(
+            result.is_err(),
+            "case={case} number={number}: expected error for nonexistent stem type"
         );
     }
 }

@@ -71,6 +71,36 @@ pub struct AnalyzeOutput {
     pub candidates: Vec<engine::AnalyzeCandidate>,
 }
 
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ParadigmArgs {
+    pub domain: String,
+    pub stem: String,
+    pub stem_type: String,
+}
+
+const CASES: [&str; 8] = ["1", "2", "3", "4", "5", "6", "7", "8"];
+const NUMBERS: [&str; 3] = ["sg", "du", "pl"];
+
+#[derive(Debug, Serialize)]
+pub struct ParadigmCell {
+    pub case: String,
+    pub number: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub form: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub trace: Option<Vec<engine::TraceStep>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ParadigmOutput {
+    pub domain: String,
+    pub stem: String,
+    pub stem_type: String,
+    pub cells: Vec<ParadigmCell>,
+}
+
 #[tool_router(router = tool_router)]
 impl PaniniServer {
     #[tool(description = "Health check. Returns version and rule cache statistics.")]
@@ -200,6 +230,68 @@ impl PaniniServer {
         };
         serde_json::to_string_pretty(&out).map_err(json_err)
     }
+
+    #[tool(description = "Full paradigm generation. domain=vyakarana. Takes stem and stem_type, returns 24-cell grid (8 cases × 3 numbers) with derived forms and sūtra-cited traces.")]
+    pub async fn panini_paradigm(
+        &self,
+        Parameters(args): Parameters<ParadigmArgs>,
+    ) -> Result<String, ErrorData> {
+        if args.domain != "vyakarana" {
+            return Err(to_error_data(PaniniError::InvalidArgument {
+                tool: "panini_paradigm".into(),
+                argument: "domain".into(),
+                constraint: "must be 'vyakarana'".into(),
+                received: args.domain,
+            }));
+        }
+
+        let sup = self.cache.get_rules("sup_suffix");
+        let pratyaya = self.cache.get_rules("pratyaya_rule");
+        let anga = self.cache.get_rules("anga_rule");
+        let sandhi = self.cache.get_rules("sandhi_rule");
+        let tripadi = self.cache.get_rules("tripadi_rule");
+
+        let mut cells = Vec::with_capacity(24);
+        for case in CASES {
+            for number in NUMBERS {
+                let input = DeclensionInput {
+                    stem: args.stem.clone(),
+                    stem_type: args.stem_type.clone(),
+                    case: case.into(),
+                    number: number.into(),
+                };
+                match derive_declension(sup, pratyaya, anga, sandhi, tripadi, input) {
+                    Ok(result) => {
+                        let form = result.output["form"].as_str().map(String::from);
+                        cells.push(ParadigmCell {
+                            case: case.into(),
+                            number: number.into(),
+                            form,
+                            trace: Some(result.trace),
+                            error: None,
+                        });
+                    }
+                    Err(e) => {
+                        cells.push(ParadigmCell {
+                            case: case.into(),
+                            number: number.into(),
+                            form: None,
+                            trace: None,
+                            error: Some(e.to_string()),
+                        });
+                    }
+                }
+            }
+        }
+
+        let out = ParadigmOutput {
+            domain: args.domain,
+            stem: args.stem,
+            stem_type: args.stem_type,
+            cells,
+        };
+        serde_json::to_string_pretty(&out).map_err(json_err)
+    }
 }
 
 #[tool_handler(router = self.tool_router)]
@@ -208,7 +300,7 @@ impl ServerHandler for PaniniServer {
         ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
             .with_instructions(
                 "panini v0.1.0 — Sanskrit grammatical derivation engine. \
-                 Tools: panini_health, panini_derive (sandhi|declension), panini_analyze.",
+                 Tools: panini_health, panini_derive (sandhi|declension), panini_analyze, panini_paradigm.",
             )
     }
 }
