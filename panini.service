@@ -1,0 +1,12 @@
+[Unit]
+Description=panini MCP server (HTTP)
+After=network.target
+
+[Service]
+ExecStart=%h/.cargo/bin/panini serve --auth-token-file %h/.panini/auth-token
+Restart=on-failure
+RestartSec=3
+Environment=VIDYA_URL=http://127.0.0.1:3300/mcp
+
+[Install]
+WantedBy=default.target

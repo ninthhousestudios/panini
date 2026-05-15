@@ -86,8 +86,8 @@ pub struct ParadigmArgs {
     pub stem_type: String,
 }
 
-const CASES: [&str; 8] = ["1", "2", "3", "4", "5", "6", "7", "8"];
-const NUMBERS: [&str; 3] = ["sg", "du", "pl"];
+pub const CASES: [&str; 8] = ["1", "2", "3", "4", "5", "6", "7", "8"];
+pub const NUMBERS: [&str; 3] = ["sg", "du", "pl"];
 
 #[derive(Debug, Serialize)]
 pub struct ParadigmCell {

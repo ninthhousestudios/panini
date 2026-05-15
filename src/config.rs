@@ -5,6 +5,8 @@ pub struct Config {
     pub vidya_url: String,
     pub vidya_auth_token: Option<String>,
     pub log_level: String,
+    pub http_host: String,
+    pub http_port: u16,
 }
 
 impl Config {
@@ -13,6 +15,10 @@ impl Config {
             vidya_url: env_or("VIDYA_URL", "http://127.0.0.1:3300/mcp"),
             vidya_auth_token: env::var("VIDYA_AUTH_TOKEN").ok(),
             log_level: env_or("PANINI_LOG_LEVEL", "info"),
+            http_host: env_or("PANINI_HTTP_HOST", "127.0.0.1"),
+            http_port: env_or("PANINI_HTTP_PORT", "4300")
+                .parse()
+                .expect("PANINI_HTTP_PORT must be a valid port number"),
         }
     }
 }
