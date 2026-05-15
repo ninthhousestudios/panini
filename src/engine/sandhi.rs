@@ -36,6 +36,22 @@ fn rule_type_priority(rule_type: &str) -> u8 {
     }
 }
 
+pub fn validate_rules(rules: &[CachedRule]) -> Vec<String> {
+    rules
+        .iter()
+        .enumerate()
+        .filter_map(|(i, rule)| {
+            match serde_json::from_value::<SandhiParams>(rule.params.clone()) {
+                Ok(_) => None,
+                Err(e) => Some(format!(
+                    "rule {i} ({}): {e}",
+                    rule.statement
+                )),
+            }
+        })
+        .collect()
+}
+
 pub fn derive_sandhi(rules: &[CachedRule], input: SandhiInput) -> Result<DeriveResult> {
     let mut parsed_rules: Vec<(SandhiParams, &CachedRule)> = rules
         .iter()

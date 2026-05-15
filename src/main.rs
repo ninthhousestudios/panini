@@ -36,8 +36,21 @@ async fn main() -> anyhow::Result<()> {
     if count == 0 {
         anyhow::bail!("zero sandhi rules loaded from vidya — check seed data");
     }
-    tracing::info!(count, "cached sandhi rules");
     cache.load_template("sandhi_rule".into(), sandhi_claims);
+
+    let parse_errors =
+        panini::engine::sandhi::validate_rules(cache.get_rules("sandhi_rule"));
+    if !parse_errors.is_empty() {
+        for err in &parse_errors {
+            tracing::error!(%err, "unparseable sandhi rule");
+        }
+        anyhow::bail!(
+            "{} of {} sandhi rules failed to parse — check vidya seed data",
+            parse_errors.len(),
+            count
+        );
+    }
+    tracing::info!(count, "cached sandhi rules (all validated)");
 
     let server = PaniniServer::new(Arc::new(cache));
     let (stdin, stdout) = rmcp::transport::stdio();
