@@ -1,5 +1,5 @@
 use panini::config::Config;
-use panini::engine::declension::{DeclensionInput, derive_declension};
+use panini::engine::declension::{DeclensionInput, analyze_declension, derive_declension};
 use panini::engine::sandhi::{SandhiInput, analyze_sandhi, derive_sandhi};
 use panini::engine::TraceStep;
 use panini::rule_cache::RuleCache;
@@ -329,4 +329,77 @@ async fn paradigm_cell_errors_dont_fail_whole_request() {
             "case={case} number={number}: expected error for nonexistent stem type"
         );
     }
+}
+
+#[tokio::test]
+async fn analyze_declension_round_trip() {
+    let cache = build_cache().await;
+    let spot_checks = [
+        ("1", "sg", "devaḥ"),
+        ("3", "sg", "devena"),
+        ("4", "pl", "devebhyaḥ"),
+        ("7", "pl", "deveṣu"),
+    ];
+    for (case, number, expected_form) in spot_checks {
+        let derived = derive_declension(
+            cache.get_rules("sup_suffix"),
+            cache.get_rules("pratyaya_rule"),
+            cache.get_rules("anga_rule"),
+            cache.get_rules("sandhi_rule"),
+            cache.get_rules("tripadi_rule"),
+            DeclensionInput {
+                stem: "deva".into(),
+                stem_type: "a-stem-m".into(),
+                case: case.into(),
+                number: number.into(),
+            },
+        )
+        .unwrap();
+        assert_eq!(
+            derived.output["form"].as_str().unwrap(),
+            expected_form,
+            "derive mismatch for case={case} number={number}"
+        );
+
+        let analyzed = analyze_declension(
+            cache.get_rules("sup_suffix"),
+            cache.get_rules("pratyaya_rule"),
+            cache.get_rules("anga_rule"),
+            cache.get_rules("sandhi_rule"),
+            cache.get_rules("tripadi_rule"),
+            expected_form,
+        )
+        .unwrap();
+        assert!(
+            analyzed
+                .candidates
+                .iter()
+                .any(|c| c.stem == "deva" && c.case == case && c.number == number),
+            "round-trip failed: case={case} number={number} form={expected_form}"
+        );
+    }
+}
+
+#[tokio::test]
+async fn analyze_declension_ambiguous() {
+    let cache = build_cache().await;
+    let analyzed = analyze_declension(
+        cache.get_rules("sup_suffix"),
+        cache.get_rules("pratyaya_rule"),
+        cache.get_rules("anga_rule"),
+        cache.get_rules("sandhi_rule"),
+        cache.get_rules("tripadi_rule"),
+        "devābhyām",
+    )
+    .unwrap();
+    let matching: Vec<_> = analyzed
+        .candidates
+        .iter()
+        .filter(|c| c.stem == "deva" && c.number == "du")
+        .collect();
+    assert!(
+        matching.len() >= 3,
+        "devābhyām should match inst/dat/abl du, got {} candidates",
+        matching.len()
+    );
 }

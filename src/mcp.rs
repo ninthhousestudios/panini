@@ -8,7 +8,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::engine;
-use crate::engine::declension::{DeclensionInput, derive_declension};
+use crate::engine::declension::{DeclensionInput, analyze_declension, derive_declension};
 use crate::engine::sandhi::{SandhiInput, analyze_sandhi, derive_sandhi};
 use crate::error::PaniniError;
 use crate::rule_cache::RuleCache;
@@ -69,6 +69,14 @@ pub struct AnalyzeOutput {
     pub operation: String,
     pub form: String,
     pub candidates: Vec<engine::AnalyzeCandidate>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct DeclensionAnalyzeOutput {
+    pub domain: String,
+    pub operation: String,
+    pub form: String,
+    pub candidates: Vec<engine::DeclensionCandidate>,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
@@ -191,7 +199,7 @@ impl PaniniServer {
         serde_json::to_string_pretty(&out).map_err(json_err)
     }
 
-    #[tool(description = "Reverse sandhi analysis. domain=vyakarana, operation=sandhi. Takes a combined form and returns ranked candidate decompositions with sūtra references.")]
+    #[tool(description = "Reverse analysis. domain=vyakarana, operation=sandhi|declension. Sandhi: decomposes a combined form into candidate splits with sūtra references. Declension: identifies candidate stem + case + number for an inflected form. Note: declension candidates are grammatical possibilities — callers need a lexicon to validate stems.")]
     pub async fn panini_analyze(
         &self,
         Parameters(args): Parameters<AnalyzeArgs>,
@@ -204,31 +212,50 @@ impl PaniniServer {
                 received: args.domain,
             }));
         }
-        if args.operation != "sandhi" {
-            return Err(to_error_data(PaniniError::InvalidArgument {
+
+        match args.operation.as_str() {
+            "sandhi" => {
+                let rules = self.cache.get_rules("sandhi_rule");
+                if rules.is_empty() {
+                    return Err(to_error_data(PaniniError::NoRulesLoaded(
+                        "sandhi_rule".into(),
+                    )));
+                }
+                let analyze_result =
+                    analyze_sandhi(rules, &args.form).map_err(to_error_data)?;
+                let out = AnalyzeOutput {
+                    domain: args.domain,
+                    operation: args.operation,
+                    form: args.form,
+                    candidates: analyze_result.candidates,
+                };
+                serde_json::to_string_pretty(&out).map_err(json_err)
+            }
+            "declension" => {
+                let result = analyze_declension(
+                    self.cache.get_rules("sup_suffix"),
+                    self.cache.get_rules("pratyaya_rule"),
+                    self.cache.get_rules("anga_rule"),
+                    self.cache.get_rules("sandhi_rule"),
+                    self.cache.get_rules("tripadi_rule"),
+                    &args.form,
+                )
+                .map_err(to_error_data)?;
+                let out = DeclensionAnalyzeOutput {
+                    domain: args.domain,
+                    operation: args.operation,
+                    form: args.form,
+                    candidates: result.candidates,
+                };
+                serde_json::to_string_pretty(&out).map_err(json_err)
+            }
+            other => Err(to_error_data(PaniniError::InvalidArgument {
                 tool: "panini_analyze".into(),
                 argument: "operation".into(),
-                constraint: "must be 'sandhi'".into(),
-                received: args.operation,
-            }));
+                constraint: "must be 'sandhi' or 'declension'".into(),
+                received: other.into(),
+            })),
         }
-
-        let rules = self.cache.get_rules("sandhi_rule");
-        if rules.is_empty() {
-            return Err(to_error_data(PaniniError::NoRulesLoaded(
-                "sandhi_rule".into(),
-            )));
-        }
-
-        let analyze_result = analyze_sandhi(rules, &args.form).map_err(to_error_data)?;
-
-        let out = AnalyzeOutput {
-            domain: args.domain,
-            operation: args.operation,
-            form: args.form,
-            candidates: analyze_result.candidates,
-        };
-        serde_json::to_string_pretty(&out).map_err(json_err)
     }
 
     #[tool(description = "Full paradigm generation. domain=vyakarana. Takes stem and stem_type, returns 24-cell grid (8 cases × 3 numbers) with derived forms and sūtra-cited traces.")]
@@ -300,7 +327,8 @@ impl ServerHandler for PaniniServer {
         ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
             .with_instructions(
                 "panini v0.1.0 — Sanskrit grammatical derivation engine. \
-                 Tools: panini_health, panini_derive (sandhi|declension), panini_analyze, panini_paradigm.",
+                 Tools: panini_health, panini_derive (sandhi|declension), \
+                 panini_analyze (sandhi|declension), panini_paradigm.",
             )
     }
 }

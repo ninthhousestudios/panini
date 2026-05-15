@@ -43,3 +43,18 @@ pub struct AnalyzeCandidate {
     pub rule_ref: Option<String>,
     pub specificity: u8,
 }
+
+#[derive(Debug, Serialize)]
+pub struct DeclensionAnalysis {
+    pub input: String,
+    pub candidates: Vec<DeclensionCandidate>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct DeclensionCandidate {
+    pub stem: String,
+    pub stem_type: String,
+    pub case: String,
+    pub number: String,
+    pub form: String,
+}

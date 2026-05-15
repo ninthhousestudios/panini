@@ -1,7 +1,10 @@
+use std::collections::HashSet;
+
 use serde::Deserialize;
+use tracing::warn;
 
 use super::phoneme::{first_phoneme, last_phoneme};
-use super::{DeriveResult, TraceStep, rule_type_priority};
+use super::{DeclensionAnalysis, DeclensionCandidate, DeriveResult, TraceStep, rule_type_priority};
 use crate::error::{PaniniError, Result};
 use crate::rule_cache::CachedRule;
 
@@ -416,6 +419,107 @@ fn try_apply_iuk_retroflexion(word: &str, input: &str, output: &str) -> Option<S
     None
 }
 
+const CASES: [&str; 8] = ["1", "2", "3", "4", "5", "6", "7", "8"];
+const NUMBERS: [&str; 3] = ["sg", "du", "pl"];
+
+pub fn analyze_declension(
+    sup_rules: &[CachedRule],
+    pratyaya_rules: &[CachedRule],
+    anga_rules: &[CachedRule],
+    sandhi_rules: &[CachedRule],
+    tripadi_rules: &[CachedRule],
+    form: &str,
+) -> Result<DeclensionAnalysis> {
+    let stem_classes: HashSet<String> = sup_rules
+        .iter()
+        .filter_map(|r| serde_json::from_value::<SupSuffix>(r.params.clone()).ok())
+        .map(|s| s.stem_class)
+        .collect();
+
+    let mut candidates = Vec::new();
+
+    for stem_class in &stem_classes {
+        let probe_stem = stem_class.split('-').next().unwrap_or(stem_class);
+        let mut probe_successes = 0u32;
+
+        for case in &CASES {
+            for number in &NUMBERS {
+                let probe_input = DeclensionInput {
+                    stem: probe_stem.to_string(),
+                    stem_type: stem_class.clone(),
+                    case: case.to_string(),
+                    number: number.to_string(),
+                };
+                let probe_result = match derive_declension(
+                    sup_rules, pratyaya_rules, anga_rules,
+                    sandhi_rules, tripadi_rules, probe_input,
+                ) {
+                    Ok(r) => { probe_successes += 1; r }
+                    Err(_) => continue,
+                };
+                let probe_form = match probe_result.output["form"].as_str() {
+                    Some(f) => f,
+                    None => continue,
+                };
+
+                if probe_form.len() > form.len() || !form.ends_with(probe_form) {
+                    continue;
+                }
+
+                let stem_base = &form[..form.len() - probe_form.len()];
+                let candidate_stem = format!("{}{}", stem_base, probe_stem);
+
+                let verify_input = DeclensionInput {
+                    stem: candidate_stem.clone(),
+                    stem_type: stem_class.clone(),
+                    case: case.to_string(),
+                    number: number.to_string(),
+                };
+                let verify_result = match derive_declension(
+                    sup_rules, pratyaya_rules, anga_rules,
+                    sandhi_rules, tripadi_rules, verify_input,
+                ) {
+                    Ok(r) => r,
+                    Err(_) => continue,
+                };
+
+                if verify_result.output["form"].as_str() == Some(form) {
+                    candidates.push(DeclensionCandidate {
+                        stem: candidate_stem,
+                        stem_type: stem_class.clone(),
+                        case: case.to_string(),
+                        number: number.to_string(),
+                        form: form.to_string(),
+                    });
+                }
+            }
+        }
+
+        if probe_successes == 0 {
+            warn!(
+                stem_class,
+                "zero successful probe derivations — probe stem extraction \
+                 likely invalid for this stem class"
+            );
+        }
+    }
+
+    candidates.sort_by(|a, b| {
+        a.stem_type.cmp(&b.stem_type)
+            .then_with(|| a.case.cmp(&b.case))
+            .then_with(|| a.number.cmp(&b.number))
+    });
+    candidates.dedup_by(|a, b| {
+        a.stem == b.stem && a.stem_type == b.stem_type
+            && a.case == b.case && a.number == b.number
+    });
+
+    Ok(DeclensionAnalysis {
+        input: form.to_string(),
+        candidates,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -783,5 +887,61 @@ mod tests {
             try_apply_iuk_retroflexion("devasu", "s", "ṣ"),
             None,
         );
+    }
+
+    fn analyze(form: &str) -> super::DeclensionAnalysis {
+        analyze_declension(
+            &fixture_sup_suffixes(),
+            &fixture_pratyaya_rules(),
+            &fixture_anga_rules(),
+            &fixture_sandhi_rules(),
+            &fixture_tripadi_rules(),
+            form,
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn analyze_nom_sg() {
+        let result = analyze("devaḥ");
+        assert!(result.candidates.iter().any(|c| c.stem == "deva"
+            && c.case == "1"
+            && c.number == "sg"));
+    }
+
+    #[test]
+    fn analyze_ambiguous_form() {
+        let result = analyze("devau");
+        let cases: Vec<&str> = result
+            .candidates
+            .iter()
+            .filter(|c| c.stem == "deva" && c.number == "du")
+            .map(|c| c.case.as_str())
+            .collect();
+        assert!(cases.contains(&"1"), "should match nom du");
+        assert!(cases.contains(&"2"), "should match acc du");
+        assert!(cases.contains(&"8"), "should match voc du");
+    }
+
+    #[test]
+    fn analyze_no_match() {
+        assert!(analyze("xyz").candidates.is_empty());
+    }
+
+    #[test]
+    fn analyze_round_trip_all_24() {
+        for case in CASES {
+            for number in NUMBERS {
+                let derived = derive(case, number);
+                let f = derived.output["form"].as_str().unwrap();
+                let analyzed = analyze(f);
+                assert!(
+                    analyzed.candidates.iter().any(|c| c.stem == "deva"
+                        && c.case == case
+                        && c.number == number),
+                    "round-trip failed: case={case} number={number} form={f}"
+                );
+            }
+        }
     }
 }
