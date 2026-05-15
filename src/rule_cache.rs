@@ -47,4 +47,8 @@ impl RuleCache {
     pub fn total_rules(&self) -> usize {
         self.rules.values().map(|v| v.len()).sum()
     }
+
+    pub fn all_templates(&self) -> impl Iterator<Item = (&str, &[CachedRule])> {
+        self.rules.iter().map(|(k, v)| (k.as_str(), v.as_slice()))
+    }
 }

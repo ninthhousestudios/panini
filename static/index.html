@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pāṇini — Paradigm Explorer</title>
+<title>Pāṇini</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -40,12 +40,44 @@ body {
 h1 {
   font-size: 1.5rem;
   font-weight: 600;
-  margin-bottom: 1.5rem;
   color: var(--accent);
+  margin-bottom: 0;
 }
 
 h1 span { font-weight: 400; color: var(--text-secondary); }
 
+/* --- Tabs --- */
+.tab-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border);
+  margin: 1rem 0 1.5rem;
+}
+
+.tab-bar button {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  padding: 0.5rem 1.25rem;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tab-bar button:hover { color: var(--text); }
+.tab-bar button.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.tab-view { display: none; }
+.tab-view.active { display: block; }
+
+/* --- Shared form styles --- */
 .input-bar {
   display: flex;
   gap: 0.75rem;
@@ -78,10 +110,10 @@ h1 span { font-weight: 400; color: var(--text-secondary); }
   outline-offset: -1px;
 }
 
-.field-stem { flex: 1; min-width: 160px; }
-.field-stem input { width: 100%; }
+.field-grow { flex: 1; min-width: 140px; }
+.field-grow input { width: 100%; }
 
-button {
+.btn {
   font-family: var(--sans);
   font-size: 0.9rem;
   font-weight: 600;
@@ -94,18 +126,19 @@ button {
   white-space: nowrap;
 }
 
-button:hover { opacity: 0.9; }
-button:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn:hover { opacity: 0.9; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-#status {
+.status {
   font-size: 0.85rem;
   color: var(--text-secondary);
   margin-bottom: 1rem;
   min-height: 1.3em;
 }
 
-#status.error { color: var(--error-text); }
+.status.error { color: var(--error-text); }
 
+/* --- Tables --- */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -133,12 +166,15 @@ tbody td {
   padding: 0.5rem 0.75rem;
   text-align: center;
   border-bottom: 1px solid #eee;
-  cursor: pointer;
   vertical-align: top;
   transition: background 0.15s;
 }
 
-tbody td:first-child {
+tbody tr:last-child td { border-bottom: none; }
+
+/* --- Paradigm grid --- */
+.paradigm-grid tbody td { cursor: pointer; }
+.paradigm-grid tbody td:first-child {
   text-align: left;
   font-weight: 600;
   font-size: 0.8rem;
@@ -147,9 +183,7 @@ tbody td:first-child {
   background: var(--accent-light);
   white-space: nowrap;
 }
-
-tbody tr:last-child td { border-bottom: none; }
-tbody td:hover:not(:first-child) { background: var(--accent-light); }
+.paradigm-grid tbody td:hover:not(:first-child) { background: var(--accent-light); }
 
 .cell-deva {
   font-family: var(--devanagari);
@@ -173,6 +207,7 @@ tbody td:hover:not(:first-child) { background: var(--accent-light); }
   border-radius: 2px;
 }
 
+/* --- Trace panel (shared) --- */
 .trace-panel {
   margin-top: 1rem;
   background: var(--trace-bg);
@@ -191,10 +226,7 @@ tbody td:hover:not(:first-child) { background: var(--accent-light); }
   margin-bottom: 0.75rem;
 }
 
-.trace-header h3 {
-  font-size: 0.9rem;
-  font-weight: 600;
-}
+.trace-header h3 { font-size: 0.9rem; font-weight: 600; }
 
 .trace-close {
   background: none;
@@ -237,56 +269,263 @@ tbody td:hover:not(:first-child) { background: var(--accent-light); }
 
 .trace-table td:first-child { color: var(--text-secondary); text-align: center; }
 
-.trace-rule-ref {
+.trace-rule-ref { font-weight: 600; color: var(--accent); }
+
+/* --- Sandhi result card --- */
+.sandhi-result {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.sandhi-form {
+  font-family: var(--devanagari);
+  font-size: 1.4rem;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.sandhi-iast {
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+/* --- Sandhi candidates list --- */
+.candidate-list { list-style: none; }
+
+.candidate {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.candidate-forms {
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.candidate-deva {
+  font-family: var(--devanagari);
+  font-size: 1.05rem;
+}
+
+.candidate-rule {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.candidate-ref { font-weight: 600; color: var(--accent); }
+
+/* --- Sandhi mode toggle --- */
+.mode-toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1rem;
+}
+
+.mode-toggle button {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 0.4rem 1rem;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.mode-toggle button:first-child { border-radius: 4px 0 0 4px; }
+.mode-toggle button:last-child { border-radius: 0 4px 4px 0; border-left: none; }
+.mode-toggle button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* --- Sūtra browser --- */
+.sutra-search {
+  margin-bottom: 1rem;
+}
+
+.sutra-search input {
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  width: 100%;
+  max-width: 400px;
+}
+
+.sutra-search input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.sutra-list { list-style: none; }
+
+.sutra-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.6rem 1rem;
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.sutra-num {
+  font-family: var(--mono);
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--accent);
+  white-space: nowrap;
+  min-width: 5em;
+}
+
+.sutra-text {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.sutra-tags {
+  display: flex;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.sutra-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  background: var(--accent-light);
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.sutra-count {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
 }
 
 @media (max-width: 600px) {
   .input-bar { flex-direction: column; align-items: stretch; }
   .container { padding: 1rem; }
   table { font-size: 0.85rem; }
+  .sutra-item { flex-wrap: wrap; }
 }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>Pāṇini <span>paradigm explorer</span></h1>
+  <h1>Pāṇini</h1>
 
-  <div class="input-bar">
-    <div class="field field-stem">
-      <label for="stem">Stem (IAST)</label>
-      <input id="stem" type="text" placeholder="deva" autocomplete="off" spellcheck="false">
-    </div>
-    <div class="field">
-      <label for="stem-type">Stem type</label>
-      <input id="stem-type" type="text" list="stem-types" value="a-stem-m" placeholder="a-stem-m" autocomplete="off">
-      <datalist id="stem-types">
-        <option value="a-stem-m">a-stem masc</option>
-        <option value="a-stem-n">a-stem neut</option>
-        <option value="aa-stem-f">ā-stem fem</option>
-        <option value="i-stem-m">i-stem masc</option>
-        <option value="u-stem-m">u-stem masc</option>
-      </datalist>
-    </div>
-    <button id="go" type="button">Generate</button>
+  <div class="tab-bar">
+    <button class="active" data-tab="paradigm">Paradigms</button>
+    <button data-tab="sandhi">Sandhi</button>
+    <button data-tab="sutras">Sūtras</button>
   </div>
 
-  <div id="status"></div>
-
-  <div id="grid-wrap"></div>
-
-  <div id="trace-panel" class="trace-panel">
-    <div class="trace-header">
-      <h3 id="trace-title"></h3>
-      <button class="trace-close" id="trace-close" title="Close">&times;</button>
+  <!-- ============ PARADIGM TAB ============ -->
+  <div id="tab-paradigm" class="tab-view active">
+    <div class="input-bar">
+      <div class="field field-grow">
+        <label for="p-stem">Stem (IAST)</label>
+        <input id="p-stem" type="text" placeholder="deva" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="field">
+        <label for="p-stem-type">Stem type</label>
+        <input id="p-stem-type" type="text" list="stem-types" value="a-stem-m" placeholder="a-stem-m" autocomplete="off">
+        <datalist id="stem-types">
+          <option value="a-stem-m">a-stem masc</option>
+          <option value="a-stem-n">a-stem neut</option>
+          <option value="aa-stem-f">ā-stem fem</option>
+          <option value="i-stem-m">i-stem masc</option>
+          <option value="u-stem-m">u-stem masc</option>
+        </datalist>
+      </div>
+      <button class="btn" id="p-go" type="button">Generate</button>
     </div>
-    <div id="trace-body"></div>
+    <div id="p-status" class="status"></div>
+    <div id="p-grid"></div>
+    <div id="p-trace" class="trace-panel">
+      <div class="trace-header">
+        <h3 id="p-trace-title"></h3>
+        <button class="trace-close" data-close="p-trace">&times;</button>
+      </div>
+      <div id="p-trace-body"></div>
+    </div>
+  </div>
+
+  <!-- ============ SANDHI TAB ============ -->
+  <div id="tab-sandhi" class="tab-view">
+    <div class="mode-toggle">
+      <button class="active" data-mode="forward">Forward (join)</button>
+      <button data-mode="reverse">Reverse (split)</button>
+    </div>
+
+    <div id="sandhi-forward">
+      <div class="input-bar">
+        <div class="field field-grow">
+          <label for="s-first">First word (IAST)</label>
+          <input id="s-first" type="text" placeholder="deva" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="field field-grow">
+          <label for="s-second">Second word (IAST)</label>
+          <input id="s-second" type="text" placeholder="atra" autocomplete="off" spellcheck="false">
+        </div>
+        <button class="btn" id="s-fwd-go" type="button">Join</button>
+      </div>
+    </div>
+
+    <div id="sandhi-reverse" style="display:none">
+      <div class="input-bar">
+        <div class="field field-grow">
+          <label for="s-form">Combined form (IAST)</label>
+          <input id="s-form" type="text" placeholder="devāḥ" autocomplete="off" spellcheck="false">
+        </div>
+        <button class="btn" id="s-rev-go" type="button">Analyze</button>
+      </div>
+    </div>
+
+    <div id="s-status" class="status"></div>
+    <div id="s-result"></div>
+    <div id="s-trace" class="trace-panel">
+      <div class="trace-header">
+        <h3 id="s-trace-title"></h3>
+        <button class="trace-close" data-close="s-trace">&times;</button>
+      </div>
+      <div id="s-trace-body"></div>
+    </div>
+  </div>
+
+  <!-- ============ SŪTRA TAB ============ -->
+  <div id="tab-sutras" class="tab-view">
+    <div class="sutra-search">
+      <input id="sutra-q" type="text" placeholder="Search sūtras by number or text…" autocomplete="off" spellcheck="false">
+    </div>
+    <div id="sutra-count" class="sutra-count"></div>
+    <ul id="sutra-list" class="sutra-list"></ul>
   </div>
 </div>
 
 <script>
 "use strict";
+
+// ============ TRANSLITERATION ============
 
 const IAST_TO_DEVA = [
   ["ai","ऐ"],["au","औ"],
@@ -323,7 +562,7 @@ function iastToDeva(iast) {
   let s = iast.toLowerCase();
   while (s.length > 0) {
     let found = false;
-    for (let [lat, dev] of IAST_TO_DEVA) {
+    for (const [lat, dev] of IAST_TO_DEVA) {
       if (s.startsWith(lat)) {
         tokens.push(dev);
         s = s.slice(lat.length);
@@ -336,18 +575,13 @@ function iastToDeva(iast) {
       s = s.slice(1);
     }
   }
-
   let result = "";
   for (let i = 0; i < tokens.length; i++) {
-    let tok = tokens[i];
+    const tok = tokens[i];
     if (CONSONANTS.has(tok)) {
-      let next = tokens[i + 1];
+      const next = tokens[i + 1];
       if (next && INDEPENDENT_VOWELS.has(next)) {
-        if (next === "अ") {
-          result += tok;
-        } else {
-          result += tok + (VOWEL_SIGNS[next] || "");
-        }
+        result += next === "अ" ? tok : tok + (VOWEL_SIGNS[next] || "");
         i++;
       } else {
         result += tok + "्";
@@ -359,42 +593,83 @@ function iastToDeva(iast) {
   return result;
 }
 
-const CASE_LABELS = {
-  "1": "prathamā (nom.)",
-  "2": "dvitīyā (acc.)",
-  "3": "tṛtīyā (ins.)",
-  "4": "caturthī (dat.)",
-  "5": "pañcamī (abl.)",
-  "6": "ṣaṣṭhī (gen.)",
-  "7": "saptamī (loc.)",
-  "8": "sambodhana (voc.)",
-};
+function esc(s) {
+  if (!s) return "";
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
 
+function dual(iast) {
+  const deva = iastToDeva(iast);
+  return `<span class="cell-deva">${esc(deva)}</span><span class="cell-iast">${esc(iast)}</span>`;
+}
+
+// ============ TABS ============
+
+document.querySelector(".tab-bar").addEventListener("click", e => {
+  const btn = e.target.closest("[data-tab]");
+  if (!btn) return;
+  document.querySelectorAll(".tab-bar button").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".tab-view").forEach(v => v.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+  if (btn.dataset.tab === "sutras" && !sutrasLoaded) loadSutras();
+});
+
+document.querySelectorAll("[data-close]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.getElementById(btn.dataset.close).classList.remove("open");
+  });
+});
+
+// ============ TRACE RENDERING (shared) ============
+
+function renderTrace(panelId, titleId, bodyId, title, trace) {
+  document.getElementById(titleId).textContent = title;
+  let html = `<table class="trace-table"><thead><tr>` +
+    `<th>#</th><th>Rule</th><th>Input</th><th>Output</th>` +
+    `</tr></thead><tbody>`;
+  for (const step of trace) {
+    const ref = step.rule_ref
+      ? `<span class="trace-rule-ref">${esc(step.rule_ref)}</span> `
+      : "";
+    html += `<tr><td>${step.step}</td><td>${ref}${esc(step.rule)}</td>` +
+      `<td>${esc(step.input_state)}</td><td>${esc(step.output_state)}</td></tr>`;
+  }
+  html += "</tbody></table>";
+  document.getElementById(bodyId).innerHTML = html;
+  const panel = document.getElementById(panelId);
+  panel.classList.add("open");
+  panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+// ============ PARADIGM TAB ============
+
+const CASE_LABELS = {
+  "1": "prathamā (nom.)", "2": "dvitīyā (acc.)", "3": "tṛtīyā (ins.)",
+  "4": "caturthī (dat.)", "5": "pañcamī (abl.)", "6": "ṣaṣṭhī (gen.)",
+  "7": "saptamī (loc.)", "8": "sambodhana (voc.)",
+};
 const NUMBER_LABELS = { "sg": "ekavacana", "du": "dvivacana", "pl": "bahuvacana" };
 
-let currentCells = null;
+let paradigmCells = null;
 
-document.getElementById("go").addEventListener("click", generate);
-document.getElementById("stem").addEventListener("keydown", e => {
-  if (e.key === "Enter") generate();
-});
-document.getElementById("trace-close").addEventListener("click", () => {
-  document.getElementById("trace-panel").classList.remove("open");
+document.getElementById("p-go").addEventListener("click", generateParadigm);
+document.getElementById("p-stem").addEventListener("keydown", e => {
+  if (e.key === "Enter") generateParadigm();
 });
 
-async function generate() {
-  const stem = document.getElementById("stem").value.trim();
-  const stemType = document.getElementById("stem-type").value;
-  const status = document.getElementById("status");
-  const gridWrap = document.getElementById("grid-wrap");
-  const tracePanel = document.getElementById("trace-panel");
+async function generateParadigm() {
+  const stem = document.getElementById("p-stem").value.trim();
+  const stemType = document.getElementById("p-stem-type").value.trim();
+  const status = document.getElementById("p-status");
+  const grid = document.getElementById("p-grid");
 
-  if (!stem) { status.textContent = "Enter a stem."; status.className = "error"; return; }
+  if (!stem) { status.textContent = "Enter a stem."; status.className = "status error"; return; }
 
   status.textContent = "Generating…";
-  status.className = "";
-  tracePanel.classList.remove("open");
-  document.getElementById("go").disabled = true;
+  status.className = "status";
+  document.getElementById("p-trace").classList.remove("open");
+  document.getElementById("p-go").disabled = true;
 
   try {
     const resp = await fetch("/api/paradigm", {
@@ -402,103 +677,239 @@ async function generate() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ domain: "vyakarana", stem, stem_type: stemType }),
     });
-
-    if (!resp.ok) {
-      const text = await resp.text();
-      throw new Error(text || resp.statusText);
-    }
+    if (!resp.ok) throw new Error(await resp.text() || resp.statusText);
 
     const data = await resp.json();
-    currentCells = data.cells;
-    renderGrid(data);
+    paradigmCells = data.cells;
+
+    const cellMap = {};
+    for (const c of data.cells) cellMap[c.case + ":" + c.number] = c;
+
+    const cases = ["1","2","3","4","5","6","7","8"];
+    const numbers = ["sg","du","pl"];
+
+    let html = `<table class="paradigm-grid"><thead><tr><th></th>`;
+    for (const n of numbers) html += `<th>${NUMBER_LABELS[n]}</th>`;
+    html += "</tr></thead><tbody>";
+    for (const cas of cases) {
+      html += `<tr><td>${CASE_LABELS[cas]}</td>`;
+      for (const num of numbers) {
+        const cell = cellMap[cas + ":" + num];
+        if (!cell) {
+          html += "<td>—</td>";
+        } else if (cell.error) {
+          html += `<td><span class="cell-error" title="${esc(cell.error)}">error</span></td>`;
+        } else {
+          html += `<td data-case="${cas}" data-number="${num}">${dual(cell.form)}</td>`;
+        }
+      }
+      html += "</tr>";
+    }
+    html += "</tbody></table>";
+    grid.innerHTML = html;
+
+    grid.querySelectorAll("td[data-case]").forEach(td => {
+      td.addEventListener("click", () => {
+        const cell = paradigmCells.find(c => c.case === td.dataset.case && c.number === td.dataset.number);
+        if (cell && cell.trace && cell.trace.length > 0) {
+          renderTrace("p-trace", "p-trace-title", "p-trace-body",
+            `${CASE_LABELS[td.dataset.case]} ${NUMBER_LABELS[td.dataset.number]} — ${cell.form}`,
+            cell.trace);
+        }
+      });
+    });
+
     status.textContent = `${data.stem} (${data.stem_type})`;
-    status.className = "";
+    status.className = "status";
   } catch (e) {
     status.textContent = e.message;
-    status.className = "error";
-    gridWrap.innerHTML = "";
+    status.className = "status error";
+    grid.innerHTML = "";
   } finally {
-    document.getElementById("go").disabled = false;
+    document.getElementById("p-go").disabled = false;
   }
 }
 
-function renderGrid(data) {
-  const wrap = document.getElementById("grid-wrap");
-  const cases = ["1","2","3","4","5","6","7","8"];
-  const numbers = ["sg","du","pl"];
+// ============ SANDHI TAB ============
 
-  const cellMap = {};
-  for (const c of data.cells) {
-    cellMap[c.case + ":" + c.number] = c;
-  }
+const modeToggle = document.querySelector(".mode-toggle");
+modeToggle.addEventListener("click", e => {
+  const btn = e.target.closest("[data-mode]");
+  if (!btn) return;
+  modeToggle.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("sandhi-forward").style.display = btn.dataset.mode === "forward" ? "" : "none";
+  document.getElementById("sandhi-reverse").style.display = btn.dataset.mode === "reverse" ? "" : "none";
+  document.getElementById("s-status").textContent = "";
+  document.getElementById("s-result").innerHTML = "";
+  document.getElementById("s-trace").classList.remove("open");
+});
 
-  let html = "<table><thead><tr><th></th>";
-  for (const n of numbers) {
-    html += `<th>${NUMBER_LABELS[n]}</th>`;
-  }
-  html += "</tr></thead><tbody>";
+document.getElementById("s-fwd-go").addEventListener("click", sandhiForward);
+document.getElementById("s-rev-go").addEventListener("click", sandhiReverse);
+document.getElementById("s-first").addEventListener("keydown", e => { if (e.key === "Enter") sandhiForward(); });
+document.getElementById("s-second").addEventListener("keydown", e => { if (e.key === "Enter") sandhiForward(); });
+document.getElementById("s-form").addEventListener("keydown", e => { if (e.key === "Enter") sandhiReverse(); });
 
-  for (const cas of cases) {
-    html += `<tr><td>${CASE_LABELS[cas]}</td>`;
-    for (const num of numbers) {
-      const cell = cellMap[cas + ":" + num];
-      if (!cell) {
-        html += "<td>—</td>";
-      } else if (cell.error) {
-        html += `<td><span class="cell-error" title="${esc(cell.error)}">error</span></td>`;
-      } else {
-        const deva = iastToDeva(cell.form);
-        html += `<td data-case="${cas}" data-number="${num}">` +
-          `<span class="cell-deva">${esc(deva)}</span>` +
-          `<span class="cell-iast">${esc(cell.form)}</span></td>`;
-      }
-    }
-    html += "</tr>";
-  }
-  html += "</tbody></table>";
-  wrap.innerHTML = html;
+async function sandhiForward() {
+  const first = document.getElementById("s-first").value.trim();
+  const second = document.getElementById("s-second").value.trim();
+  const status = document.getElementById("s-status");
+  const result = document.getElementById("s-result");
 
-  wrap.querySelectorAll("td[data-case]").forEach(td => {
-    td.addEventListener("click", () => {
-      showTrace(td.dataset.case, td.dataset.number);
+  if (!first || !second) { status.textContent = "Enter both words."; status.className = "status error"; return; }
+
+  status.textContent = "Joining…";
+  status.className = "status";
+  result.innerHTML = "";
+  document.getElementById("s-trace").classList.remove("open");
+  document.getElementById("s-fwd-go").disabled = true;
+
+  try {
+    const resp = await fetch("/api/derive", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ domain: "vyakarana", operation: "sandhi", input: { first, second } }),
     });
-  });
-}
+    if (!resp.ok) throw new Error(await resp.text() || resp.statusText);
 
-function showTrace(cas, num) {
-  if (!currentCells) return;
-  const cell = currentCells.find(c => c.case === cas && c.number === num);
-  if (!cell || !cell.trace || cell.trace.length === 0) return;
+    const data = await resp.json();
+    const form = data.result.form || data.result;
+    const deva = iastToDeva(typeof form === "string" ? form : JSON.stringify(form));
+    const iast = typeof form === "string" ? form : JSON.stringify(form);
 
-  const panel = document.getElementById("trace-panel");
-  const title = document.getElementById("trace-title");
-  const body = document.getElementById("trace-body");
+    let html = `<div class="sandhi-result">`;
+    html += `<span class="sandhi-form">${esc(deva)}</span>`;
+    html += `<span class="sandhi-iast">${esc(iast)}</span>`;
+    if (data.trace && data.trace.length > 0) {
+      html += `<button class="btn" id="s-fwd-trace-btn" type="button" style="font-size:0.8rem;padding:0.3rem 0.75rem">Show trace</button>`;
+    }
+    html += `</div>`;
+    result.innerHTML = html;
 
-  title.textContent = `${CASE_LABELS[cas]} ${NUMBER_LABELS[num]} — ${cell.form}`;
+    if (data.trace && data.trace.length > 0) {
+      document.getElementById("s-fwd-trace-btn").addEventListener("click", () => {
+        renderTrace("s-trace", "s-trace-title", "s-trace-body",
+          `${first} + ${second} → ${iast}`, data.trace);
+      });
+    }
 
-  let html = `<table class="trace-table"><thead><tr>` +
-    `<th>#</th><th>Rule</th><th>Input</th><th>Output</th>` +
-    `</tr></thead><tbody>`;
-
-  for (const step of cell.trace) {
-    const ref = step.rule_ref ? `<span class="trace-rule-ref">${esc(step.rule_ref)}</span> ` : "";
-    html += `<tr>` +
-      `<td>${step.step}</td>` +
-      `<td>${ref}${esc(step.rule)}</td>` +
-      `<td>${esc(step.input_state)}</td>` +
-      `<td>${esc(step.output_state)}</td>` +
-      `</tr>`;
+    status.textContent = `${first} + ${second}`;
+    status.className = "status";
+  } catch (e) {
+    status.textContent = e.message;
+    status.className = "status error";
+  } finally {
+    document.getElementById("s-fwd-go").disabled = false;
   }
-  html += "</tbody></table>";
-  body.innerHTML = html;
-  panel.classList.add("open");
-  panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
-function esc(s) {
-  if (!s) return "";
-  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+async function sandhiReverse() {
+  const form = document.getElementById("s-form").value.trim();
+  const status = document.getElementById("s-status");
+  const result = document.getElementById("s-result");
+
+  if (!form) { status.textContent = "Enter a combined form."; status.className = "status error"; return; }
+
+  status.textContent = "Analyzing…";
+  status.className = "status";
+  result.innerHTML = "";
+  document.getElementById("s-trace").classList.remove("open");
+  document.getElementById("s-rev-go").disabled = true;
+
+  try {
+    const resp = await fetch("/api/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ domain: "vyakarana", operation: "sandhi", form }),
+    });
+    if (!resp.ok) throw new Error(await resp.text() || resp.statusText);
+
+    const data = await resp.json();
+    const candidates = data.candidates || [];
+
+    if (candidates.length === 0) {
+      result.innerHTML = `<p style="color:var(--text-secondary)">No decompositions found.</p>`;
+      status.textContent = form;
+      status.className = "status";
+      return;
+    }
+
+    let html = `<ul class="candidate-list">`;
+    for (const c of candidates) {
+      const firstDeva = iastToDeva(c.first);
+      const secondDeva = iastToDeva(c.second);
+      const ref = c.rule_ref ? `<span class="candidate-ref">${esc(c.rule_ref)}</span> ` : "";
+      html += `<li class="candidate">` +
+        `<div class="candidate-deva">${esc(firstDeva)} + ${esc(secondDeva)}</div>` +
+        `<div class="candidate-forms">${esc(c.first)} + ${esc(c.second)}</div>` +
+        `<div class="candidate-rule">${ref}${esc(c.rule)}</div>` +
+        `</li>`;
+    }
+    html += `</ul>`;
+    result.innerHTML = html;
+
+    status.textContent = `${form} — ${candidates.length} candidate${candidates.length !== 1 ? "s" : ""}`;
+    status.className = "status";
+  } catch (e) {
+    status.textContent = e.message;
+    status.className = "status error";
+  } finally {
+    document.getElementById("s-rev-go").disabled = false;
+  }
 }
+
+// ============ SŪTRA TAB ============
+
+let sutrasLoaded = false;
+let allSutras = [];
+
+async function loadSutras() {
+  const count = document.getElementById("sutra-count");
+  const list = document.getElementById("sutra-list");
+  count.textContent = "Loading…";
+
+  try {
+    const resp = await fetch("/api/sutras");
+    if (!resp.ok) throw new Error(await resp.text() || resp.statusText);
+    allSutras = await resp.json();
+    sutrasLoaded = true;
+    renderSutras(allSutras);
+  } catch (e) {
+    count.textContent = e.message;
+    count.className = "sutra-count error";
+  }
+}
+
+function renderSutras(sutras) {
+  const count = document.getElementById("sutra-count");
+  const list = document.getElementById("sutra-list");
+
+  count.textContent = `${sutras.length} sūtra${sutras.length !== 1 ? "s" : ""}`;
+  count.className = "sutra-count";
+
+  let html = "";
+  for (const s of sutras) {
+    const tags = s.templates.map(t => `<span class="sutra-tag">${esc(t)}</span>`).join("");
+    html += `<li class="sutra-item">` +
+      `<span class="sutra-num">${esc(s.sutra)}</span>` +
+      `<span class="sutra-text">${esc(s.statement)}</span>` +
+      `<span class="sutra-tags">${tags}</span>` +
+      `</li>`;
+  }
+  list.innerHTML = html;
+}
+
+document.getElementById("sutra-q").addEventListener("input", e => {
+  const q = e.target.value.trim().toLowerCase();
+  if (!q) { renderSutras(allSutras); return; }
+  const filtered = allSutras.filter(s =>
+    s.sutra.toLowerCase().includes(q) ||
+    s.statement.toLowerCase().includes(q) ||
+    s.templates.some(t => t.toLowerCase().includes(q))
+  );
+  renderSutras(filtered);
+});
 </script>
 </body>
 </html>

@@ -1,9 +1,11 @@
+use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
+use serde::Serialize;
 
 use crate::engine::declension::{DeclensionInput, analyze_declension, derive_declension};
 use crate::engine::sandhi::{SandhiInput, analyze_sandhi, derive_sandhi};
@@ -212,6 +214,43 @@ pub async fn paradigm(
         stem_type: args.stem_type,
         cells,
     }))
+}
+
+#[derive(Serialize)]
+pub struct SutraEntry {
+    pub sutra: String,
+    pub statement: String,
+    pub templates: Vec<String>,
+}
+
+pub async fn sutras(State(cache): State<AppState>) -> Json<Vec<SutraEntry>> {
+    let mut by_sutra: BTreeMap<String, (String, Vec<String>)> = BTreeMap::new();
+
+    for (template, rules) in cache.all_templates() {
+        for rule in rules {
+            let sutra = rule.params.get("sutra").and_then(|v| v.as_str()).unwrap_or("");
+            if sutra.is_empty() {
+                continue;
+            }
+            let entry = by_sutra
+                .entry(sutra.to_string())
+                .or_insert_with(|| (rule.statement.clone(), Vec::new()));
+            if !entry.1.contains(&template.to_string()) {
+                entry.1.push(template.to_string());
+            }
+        }
+    }
+
+    let entries: Vec<SutraEntry> = by_sutra
+        .into_iter()
+        .map(|(sutra, (statement, templates))| SutraEntry {
+            sutra,
+            statement,
+            templates,
+        })
+        .collect();
+
+    Json(entries)
 }
 
 fn validate_domain(endpoint: &str, domain: &str) -> Result<(), ApiError> {
