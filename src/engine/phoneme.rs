@@ -2,6 +2,10 @@ const VOWEL_PHONEMES: &[&str] = &[
     "ai", "au", "ā", "ī", "ū", "ṝ", "ṛ", "ḷ", "a", "i", "u", "e", "o",
 ];
 
+const CONSONANT_DIGRAPHS: &[&str] = &[
+    "kh", "gh", "ch", "jh", "ṭh", "ḍh", "th", "dh", "ph", "bh",
+];
+
 pub fn tokenize(s: &str) -> Vec<&str> {
     let mut result = Vec::new();
     let mut remaining = s;
@@ -16,12 +20,30 @@ pub fn tokenize(s: &str) -> Vec<&str> {
             }
         }
         if !matched {
+            for &digraph in CONSONANT_DIGRAPHS {
+                if remaining.starts_with(digraph) {
+                    result.push(&remaining[..digraph.len()]);
+                    remaining = &remaining[digraph.len()..];
+                    matched = true;
+                    break;
+                }
+            }
+        }
+        if !matched {
             let ch_len = remaining.chars().next().unwrap().len_utf8();
             result.push(&remaining[..ch_len]);
             remaining = &remaining[ch_len..];
         }
     }
     result
+}
+
+pub fn first_phoneme(s: &str) -> Option<&str> {
+    tokenize(s).into_iter().next()
+}
+
+pub fn last_phoneme(s: &str) -> Option<&str> {
+    tokenize(s).into_iter().last()
 }
 
 pub fn phoneme_ends_with(haystack: &str, needle: &str) -> bool {
@@ -92,5 +114,21 @@ mod tests {
         assert_eq!(phoneme_strip_suffix("mai", "i"), None);
         assert_eq!(phoneme_strip_prefix("ai", "a"), None);
         assert_eq!(phoneme_strip_prefix("ai", "ai"), Some(""));
+    }
+
+    #[test]
+    fn tokenize_aspirates() {
+        assert_eq!(tokenize("bhyām"), vec!["bh", "y", "ā", "m"]);
+        assert_eq!(tokenize("dha"), vec!["dh", "a"]);
+        assert_eq!(tokenize("kha"), vec!["kh", "a"]);
+    }
+
+    #[test]
+    fn first_last_phoneme() {
+        assert_eq!(first_phoneme("bhyām"), Some("bh"));
+        assert_eq!(last_phoneme("devaḥ"), Some("ḥ"));
+        assert_eq!(first_phoneme("ais"), Some("ai"));
+        assert_eq!(last_phoneme(""), None);
+        assert_eq!(first_phoneme(""), None);
     }
 }

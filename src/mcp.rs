@@ -8,6 +8,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::engine;
+use crate::engine::declension::{DeclensionInput, derive_declension};
 use crate::engine::sandhi::{SandhiInput, analyze_sandhi, derive_sandhi};
 use crate::error::PaniniError;
 use crate::rule_cache::RuleCache;
@@ -87,7 +88,7 @@ impl PaniniServer {
         serde_json::to_string_pretty(&out).map_err(json_err)
     }
 
-    #[tool(description = "Forward derivation. domain=vyakarana, operation=sandhi. Input: {first, second}. Returns result and sūtra-cited trace.")]
+    #[tool(description = "Forward derivation. domain=vyakarana, operation=sandhi|declension. Sandhi input: {first, second}. Declension input: {stem, stem_type, case, number}. Returns result and sūtra-cited trace.")]
     pub async fn panini_derive(
         &self,
         Parameters(args): Parameters<DeriveArgs>,
@@ -100,32 +101,55 @@ impl PaniniServer {
                 received: args.domain,
             }));
         }
-        if args.operation != "sandhi" {
-            return Err(to_error_data(PaniniError::InvalidArgument {
-                tool: "panini_derive".into(),
-                argument: "operation".into(),
-                constraint: "must be 'sandhi'".into(),
-                received: args.operation,
-            }));
-        }
 
-        let rules = self.cache.get_rules("sandhi_rule");
-        if rules.is_empty() {
-            return Err(to_error_data(PaniniError::NoRulesLoaded(
-                "sandhi_rule".into(),
-            )));
-        }
-
-        let input: SandhiInput = serde_json::from_value(args.input.clone()).map_err(|e| {
-            to_error_data(PaniniError::InvalidArgument {
-                tool: "panini_derive".into(),
-                argument: "input".into(),
-                constraint: "requires {first, second} fields".into(),
-                received: e.to_string(),
-            })
-        })?;
-
-        let derive_result = derive_sandhi(rules, input).map_err(to_error_data)?;
+        let derive_result = match args.operation.as_str() {
+            "sandhi" => {
+                let rules = self.cache.get_rules("sandhi_rule");
+                if rules.is_empty() {
+                    return Err(to_error_data(PaniniError::NoRulesLoaded(
+                        "sandhi_rule".into(),
+                    )));
+                }
+                let input: SandhiInput =
+                    serde_json::from_value(args.input.clone()).map_err(|e| {
+                        to_error_data(PaniniError::InvalidArgument {
+                            tool: "panini_derive".into(),
+                            argument: "input".into(),
+                            constraint: "requires {first, second}".into(),
+                            received: e.to_string(),
+                        })
+                    })?;
+                derive_sandhi(rules, input).map_err(to_error_data)?
+            }
+            "declension" => {
+                let input: DeclensionInput =
+                    serde_json::from_value(args.input.clone()).map_err(|e| {
+                        to_error_data(PaniniError::InvalidArgument {
+                            tool: "panini_derive".into(),
+                            argument: "input".into(),
+                            constraint: "requires {stem, stem_type, case, number}".into(),
+                            received: e.to_string(),
+                        })
+                    })?;
+                derive_declension(
+                    self.cache.get_rules("sup_suffix"),
+                    self.cache.get_rules("pratyaya_rule"),
+                    self.cache.get_rules("anga_rule"),
+                    self.cache.get_rules("sandhi_rule"),
+                    self.cache.get_rules("tripadi_rule"),
+                    input,
+                )
+                .map_err(to_error_data)?
+            }
+            other => {
+                return Err(to_error_data(PaniniError::InvalidArgument {
+                    tool: "panini_derive".into(),
+                    argument: "operation".into(),
+                    constraint: "must be 'sandhi' or 'declension'".into(),
+                    received: other.into(),
+                }));
+            }
+        };
 
         let out = DeriveOutput {
             domain: args.domain,
@@ -184,7 +208,7 @@ impl ServerHandler for PaniniServer {
         ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
             .with_instructions(
                 "panini v0.1.0 — Sanskrit grammatical derivation engine. \
-                 Tools: panini_health, panini_derive, panini_analyze.",
+                 Tools: panini_health, panini_derive (sandhi|declension), panini_analyze.",
             )
     }
 }

@@ -52,6 +52,19 @@ async fn main() -> anyhow::Result<()> {
     }
     tracing::info!(count, "cached sandhi rules (all validated)");
 
+    for template in ["sup_suffix", "pratyaya_rule", "anga_rule", "tripadi_rule"] {
+        let claims = vidya
+            .fetch_claims("vyakarana", template)
+            .await
+            .context(format!("failed to fetch {template} from vidya"))?;
+        if claims.is_empty() && template == "sup_suffix" {
+            tracing::warn!("no sup_suffix rules loaded — declension will not work");
+        }
+        let count = claims.len();
+        cache.load_template(template.into(), claims);
+        tracing::info!(template, count, "cached rules");
+    }
+
     let server = PaniniServer::new(Arc::new(cache));
     let (stdin, stdout) = rmcp::transport::stdio();
     let service = server

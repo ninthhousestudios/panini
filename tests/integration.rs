@@ -1,4 +1,5 @@
 use panini::config::Config;
+use panini::engine::declension::{DeclensionInput, derive_declension};
 use panini::engine::sandhi::{SandhiInput, analyze_sandhi, derive_sandhi};
 use panini::rule_cache::RuleCache;
 use panini::vidya_client::VidyaClient;
@@ -11,12 +12,14 @@ async fn build_cache() -> RuleCache {
         .expect("failed to connect to vidya — is it running?");
 
     let mut cache = RuleCache::new();
-    let claims = vidya
-        .fetch_claims("vyakarana", "sandhi_rule")
-        .await
-        .expect("failed to fetch sandhi rules");
-    assert!(claims.len() > 0, "no sandhi rules loaded from vidya");
-    cache.load_template("sandhi_rule".into(), claims);
+    for template in ["sandhi_rule", "sup_suffix", "pratyaya_rule", "anga_rule", "tripadi_rule"] {
+        let claims = vidya
+            .fetch_claims("vyakarana", template)
+            .await
+            .unwrap_or_else(|e| panic!("failed to fetch {template}: {e}"));
+        cache.load_template(template.into(), claims);
+    }
+    assert!(cache.rule_count("sandhi_rule") > 0, "no sandhi rules loaded from vidya");
     cache
 }
 
@@ -156,4 +159,66 @@ async fn health_returns_rule_counts() {
 async fn fails_if_vidya_unreachable() {
     let result = VidyaClient::connect("http://127.0.0.1:19999/mcp", None).await;
     assert!(result.is_err());
+}
+
+#[tokio::test]
+async fn declension_cache_loads_all_templates() {
+    let cache = build_cache().await;
+    assert!(cache.rule_count("sup_suffix") > 0, "no sup_suffix rules");
+    assert!(cache.rule_count("pratyaya_rule") > 0, "no pratyaya rules");
+    assert!(cache.rule_count("anga_rule") > 0, "no anga rules");
+    assert!(cache.rule_count("tripadi_rule") > 0, "no tripadi rules");
+}
+
+#[tokio::test]
+async fn derive_deva_paradigm() {
+    let cache = build_cache().await;
+    let expected = vec![
+        ("1", "sg", "devaḥ"),
+        ("1", "du", "devau"),
+        ("1", "pl", "devāḥ"),
+        ("2", "sg", "devam"),
+        ("2", "du", "devau"),
+        ("2", "pl", "devān"),
+        ("3", "sg", "devena"),
+        ("3", "du", "devābhyām"),
+        ("3", "pl", "devaiḥ"),
+        ("4", "sg", "devāya"),
+        ("4", "du", "devābhyām"),
+        ("4", "pl", "devebhyaḥ"),
+        ("5", "sg", "devāt"),
+        ("5", "du", "devābhyām"),
+        ("5", "pl", "devebhyaḥ"),
+        ("6", "sg", "devasya"),
+        ("6", "du", "devayoḥ"),
+        ("6", "pl", "devānām"),
+        ("7", "sg", "deve"),
+        ("7", "du", "devayoḥ"),
+        ("7", "pl", "deveṣu"),
+        ("8", "sg", "deva"),
+        ("8", "du", "devau"),
+        ("8", "pl", "devāḥ"),
+    ];
+    for (case, number, exp) in expected {
+        let result = derive_declension(
+            cache.get_rules("sup_suffix"),
+            cache.get_rules("pratyaya_rule"),
+            cache.get_rules("anga_rule"),
+            cache.get_rules("sandhi_rule"),
+            cache.get_rules("tripadi_rule"),
+            DeclensionInput {
+                stem: "deva".into(),
+                stem_type: "a-stem-m".into(),
+                case: case.into(),
+                number: number.into(),
+            },
+        )
+        .unwrap();
+        let form = result.output["form"].as_str().unwrap();
+        assert_eq!(form, exp, "case={case} number={number} expected={exp}");
+        assert!(
+            result.trace.iter().any(|t| t.rule_ref.is_some()),
+            "trace should include sutra citations for case={case} number={number}"
+        );
+    }
 }

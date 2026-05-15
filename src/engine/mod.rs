@@ -1,7 +1,18 @@
+pub mod declension;
 pub mod phoneme;
 pub mod sandhi;
 
 use serde::Serialize;
+
+pub fn rule_type_priority(rule_type: &str) -> u8 {
+    match rule_type {
+        "apavāda" | "apavada" => 4,
+        "nitya" => 3,
+        "paribhāṣā" | "paribhasha" => 2,
+        "utsarga" => 1,
+        _ => 0,
+    }
+}
 
 #[derive(Debug, Serialize)]
 pub struct DeriveResult {

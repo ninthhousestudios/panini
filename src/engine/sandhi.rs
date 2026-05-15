@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
 use super::phoneme::{phoneme_ends_with, phoneme_starts_with, phoneme_strip_prefix, phoneme_strip_suffix, tokenize};
-use super::{AnalyzeCandidate, AnalyzeResult, DeriveResult, TraceStep};
+use super::{AnalyzeCandidate, AnalyzeResult, DeriveResult, TraceStep, rule_type_priority};
 use crate::error::Result;
 use crate::rule_cache::CachedRule;
 
@@ -24,16 +24,6 @@ struct SandhiParams {
     rule_type: String,
     #[serde(default)]
     condition_pratyaya: Option<String>,
-}
-
-fn rule_type_priority(rule_type: &str) -> u8 {
-    match rule_type {
-        "apavāda" | "apavada" => 4,
-        "nitya" => 3,
-        "paribhāṣā" | "paribhasha" => 2,
-        "utsarga" => 1,
-        _ => 0,
-    }
 }
 
 pub fn validate_rules(rules: &[CachedRule]) -> Vec<String> {
