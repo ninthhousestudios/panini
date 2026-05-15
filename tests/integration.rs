@@ -149,6 +149,122 @@ async fn analyze_visarga_round_trip() {
 }
 
 #[tokio::test]
+async fn derive_consonant_sandhi_palatalization() {
+    let cache = build_cache().await;
+    let rules = cache.get_rules("sandhi_rule");
+    let cases = [
+        ("tat", "ca", "tacca", "8.4.40"),
+        ("tat", "jayati", "tajjayati", "8.4.40"),
+        ("tat", "ṭīkā", "taṭṭīkā", "8.4.41"),
+    ];
+    for (first, second, expected, sutra) in cases {
+        let result = derive_sandhi(
+            rules,
+            SandhiInput { first: first.into(), second: second.into() },
+        ).unwrap();
+        assert_eq!(
+            result.output["result"], expected,
+            "{first} + {second} should be {expected}"
+        );
+        assert_eq!(result.trace.len(), 1);
+        assert_eq!(result.trace[0].rule_ref.as_deref(), Some(sutra));
+    }
+}
+
+#[tokio::test]
+async fn derive_consonant_sandhi_voicing() {
+    let cache = build_cache().await;
+    let rules = cache.get_rules("sandhi_rule");
+    let cases = [
+        ("tat", "gacchati", "tadgacchati", "8.4.53"),
+        ("tat", "atra", "tadatra", "8.2.39"),
+        ("vāk", "īśvaraḥ", "vāgīśvaraḥ", "8.2.39"),
+        ("tat", "nayati", "tannayati", "8.4.45"),
+    ];
+    for (first, second, expected, sutra) in cases {
+        let result = derive_sandhi(
+            rules,
+            SandhiInput { first: first.into(), second: second.into() },
+        ).unwrap();
+        assert_eq!(
+            result.output["result"], expected,
+            "{first} + {second} should be {expected}"
+        );
+        assert_eq!(
+            result.trace[0].rule_ref.as_deref(), Some(sutra),
+            "{first} + {second} should cite {sutra}"
+        );
+    }
+}
+
+#[tokio::test]
+async fn derive_consonant_sandhi_anusvara() {
+    let cache = build_cache().await;
+    let rules = cache.get_rules("sandhi_rule");
+    let result = derive_sandhi(
+        rules,
+        SandhiInput { first: "sam".into(), second: "kalpam".into() },
+    ).unwrap();
+    assert_eq!(result.output["result"], "saṃkalpam");
+    assert_eq!(result.trace[0].rule_ref.as_deref(), Some("8.3.23"));
+}
+
+#[tokio::test]
+async fn derive_no_false_sandhi() {
+    let cache = build_cache().await;
+    let rules = cache.get_rules("sandhi_rule");
+    let result = derive_sandhi(
+        rules,
+        SandhiInput { first: "vāk".into(), second: "ca".into() },
+    ).unwrap();
+    assert_eq!(result.output["result"], "vākca");
+    assert!(result.trace.is_empty(), "vāk + ca should have no sandhi");
+}
+
+#[tokio::test]
+async fn analyze_consonant_sandhi_round_trip() {
+    let cache = build_cache().await;
+    let rules = cache.get_rules("sandhi_rule");
+    let cases = [
+        ("tat", "ca"),
+        ("tat", "jayati"),
+        ("tat", "ṭīkā"),
+        ("tat", "gacchati"),
+        ("tat", "nayati"),
+        ("sam", "kalpam"),
+        ("tat", "atra"),
+        ("vāk", "īśvaraḥ"),
+    ];
+    for (first, second) in cases {
+        let derived = derive_sandhi(
+            rules,
+            SandhiInput { first: first.into(), second: second.into() },
+        ).unwrap();
+        let combined = derived.output["result"].as_str().unwrap();
+        let analyzed = analyze_sandhi(rules, combined).unwrap();
+        let found = analyzed.candidates.iter().any(|c| c.first == first && c.second == second);
+        assert!(
+            found,
+            "consonant round-trip failed: {} + {} → {}: candidates = {:#?}",
+            first, second, combined, analyzed.candidates
+        );
+    }
+}
+
+#[tokio::test]
+async fn analyze_consonant_ranking() {
+    let cache = build_cache().await;
+    let rules = cache.get_rules("sandhi_rule");
+    let analyzed = analyze_sandhi(rules, "tacca").unwrap();
+    let correct = analyzed.candidates.iter().find(|c| c.first == "tat" && c.second == "ca");
+    assert!(
+        correct.is_some(),
+        "expected tat + ca in candidates for tacca: {:#?}",
+        analyzed.candidates
+    );
+}
+
+#[tokio::test]
 async fn health_returns_rule_counts() {
     let cache = build_cache().await;
     assert!(cache.template_count() >= 1);

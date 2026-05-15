@@ -201,6 +201,82 @@ mod tests {
             serde_json::json!({"first": "aḥ", "second": "a", "result": "o '", "sutra": "6.1.109", "sutra_position": "06.01.109", "rule_type": "utsarga"}),
             // visarga: aḥ + voiced consonant → o (8.3.17)
             serde_json::json!({"first": "aḥ", "second": "g", "result": "og", "sutra": "8.3.17", "sutra_position": "08.03.017", "rule_type": "utsarga"}),
+            // 8.4.40 stoḥ ścunā ścuḥ — dental → palatal
+            serde_json::json!({"first": "t", "second": "c", "result": "cc", "sutra": "8.4.40", "sutra_position": "08.04.040", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "t", "second": "ch", "result": "cch", "sutra": "8.4.40", "sutra_position": "08.04.040", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "t", "second": "j", "result": "jj", "sutra": "8.4.40", "sutra_position": "08.04.040", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "t", "second": "jh", "result": "jjh", "sutra": "8.4.40", "sutra_position": "08.04.040", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "d", "second": "c", "result": "cc", "sutra": "8.4.40", "sutra_position": "08.04.040", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "d", "second": "ch", "result": "cch", "sutra": "8.4.40", "sutra_position": "08.04.040", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "d", "second": "j", "result": "jj", "sutra": "8.4.40", "sutra_position": "08.04.040", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "d", "second": "jh", "result": "jjh", "sutra": "8.4.40", "sutra_position": "08.04.040", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "n", "second": "c", "result": "ñc", "sutra": "8.4.40", "sutra_position": "08.04.040", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "n", "second": "ch", "result": "ñch", "sutra": "8.4.40", "sutra_position": "08.04.040", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "n", "second": "j", "result": "ñj", "sutra": "8.4.40", "sutra_position": "08.04.040", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "n", "second": "jh", "result": "ñjh", "sutra": "8.4.40", "sutra_position": "08.04.040", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "t", "second": "ś", "result": "cch", "sutra": "8.4.40", "sutra_position": "08.04.040", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "d", "second": "ś", "result": "cch", "sutra": "8.4.40", "sutra_position": "08.04.040", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "n", "second": "ś", "result": "ñch", "sutra": "8.4.40", "sutra_position": "08.04.040", "rule_type": "utsarga"}),
+            // 8.4.41 ṣṭunā ṣṭuḥ — dental → retroflex
+            serde_json::json!({"first": "t", "second": "ṭ", "result": "ṭṭ", "sutra": "8.4.41", "sutra_position": "08.04.041", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "t", "second": "ṭh", "result": "ṭṭh", "sutra": "8.4.41", "sutra_position": "08.04.041", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "t", "second": "ḍ", "result": "ḍḍ", "sutra": "8.4.41", "sutra_position": "08.04.041", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "t", "second": "ḍh", "result": "ḍḍh", "sutra": "8.4.41", "sutra_position": "08.04.041", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "d", "second": "ṭ", "result": "ṭṭ", "sutra": "8.4.41", "sutra_position": "08.04.041", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "d", "second": "ṭh", "result": "ṭṭh", "sutra": "8.4.41", "sutra_position": "08.04.041", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "d", "second": "ḍ", "result": "ḍḍ", "sutra": "8.4.41", "sutra_position": "08.04.041", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "d", "second": "ḍh", "result": "ḍḍh", "sutra": "8.4.41", "sutra_position": "08.04.041", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "n", "second": "ṭ", "result": "ṇṭ", "sutra": "8.4.41", "sutra_position": "08.04.041", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "n", "second": "ṭh", "result": "ṇṭh", "sutra": "8.4.41", "sutra_position": "08.04.041", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "n", "second": "ḍ", "result": "ṇḍ", "sutra": "8.4.41", "sutra_position": "08.04.041", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "n", "second": "ḍh", "result": "ṇḍh", "sutra": "8.4.41", "sutra_position": "08.04.041", "rule_type": "utsarga"}),
+            // 8.4.53 jhalāṃ jaś jhali — voicing before voiced consonant
+            serde_json::json!({"first": "t", "second": "g", "result": "dg", "sutra": "8.4.53", "sutra_position": "08.04.053", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "t", "second": "gh", "result": "dgh", "sutra": "8.4.53", "sutra_position": "08.04.053", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "t", "second": "d", "result": "dd", "sutra": "8.4.53", "sutra_position": "08.04.053", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "t", "second": "dh", "result": "ddh", "sutra": "8.4.53", "sutra_position": "08.04.053", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "t", "second": "b", "result": "db", "sutra": "8.4.53", "sutra_position": "08.04.053", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "t", "second": "bh", "result": "dbh", "sutra": "8.4.53", "sutra_position": "08.04.053", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "k", "second": "g", "result": "gg", "sutra": "8.4.53", "sutra_position": "08.04.053", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "k", "second": "gh", "result": "ggh", "sutra": "8.4.53", "sutra_position": "08.04.053", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "k", "second": "j", "result": "gj", "sutra": "8.4.53", "sutra_position": "08.04.053", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "k", "second": "d", "result": "gd", "sutra": "8.4.53", "sutra_position": "08.04.053", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "k", "second": "dh", "result": "gdh", "sutra": "8.4.53", "sutra_position": "08.04.053", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "k", "second": "b", "result": "gb", "sutra": "8.4.53", "sutra_position": "08.04.053", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "k", "second": "bh", "result": "gbh", "sutra": "8.4.53", "sutra_position": "08.04.053", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "p", "second": "g", "result": "bg", "sutra": "8.4.53", "sutra_position": "08.04.053", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "p", "second": "d", "result": "bd", "sutra": "8.4.53", "sutra_position": "08.04.053", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "p", "second": "b", "result": "bb", "sutra": "8.4.53", "sutra_position": "08.04.053", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "p", "second": "bh", "result": "bbh", "sutra": "8.4.53", "sutra_position": "08.04.053", "rule_type": "utsarga"}),
+            // 8.4.45 nasal assimilation
+            serde_json::json!({"first": "t", "second": "n", "result": "nn", "sutra": "8.4.45", "sutra_position": "08.04.045", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "t", "second": "m", "result": "nm", "sutra": "8.4.45", "sutra_position": "08.04.045", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "k", "second": "ṅ", "result": "ṅṅ", "sutra": "8.4.45", "sutra_position": "08.04.045", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "k", "second": "n", "result": "ṅn", "sutra": "8.4.45", "sutra_position": "08.04.045", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "k", "second": "m", "result": "ṅm", "sutra": "8.4.45", "sutra_position": "08.04.045", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "p", "second": "n", "result": "mn", "sutra": "8.4.45", "sutra_position": "08.04.045", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "p", "second": "m", "result": "mm", "sutra": "8.4.45", "sutra_position": "08.04.045", "rule_type": "utsarga"}),
+            // 8.3.23 mo'nusvāraḥ — m before consonant → ṃ (representative subset)
+            serde_json::json!({"first": "m", "second": "k", "result": "ṃk", "sutra": "8.3.23", "sutra_position": "08.03.023", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "m", "second": "g", "result": "ṃg", "sutra": "8.3.23", "sutra_position": "08.03.023", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "m", "second": "c", "result": "ṃc", "sutra": "8.3.23", "sutra_position": "08.03.023", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "m", "second": "t", "result": "ṃt", "sutra": "8.3.23", "sutra_position": "08.03.023", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "m", "second": "p", "result": "ṃp", "sutra": "8.3.23", "sutra_position": "08.03.023", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "m", "second": "s", "result": "ṃs", "sutra": "8.3.23", "sutra_position": "08.03.023", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "m", "second": "n", "result": "ṃn", "sutra": "8.3.23", "sutra_position": "08.03.023", "rule_type": "utsarga"}),
+            // 8.2.39 jhalāṃ jaśo'nte — stop voicing before vowel (representative subset)
+            serde_json::json!({"first": "t", "second": "a", "result": "da", "sutra": "8.2.39", "sutra_position": "08.02.039", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "t", "second": "ā", "result": "dā", "sutra": "8.2.39", "sutra_position": "08.02.039", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "t", "second": "i", "result": "di", "sutra": "8.2.39", "sutra_position": "08.02.039", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "t", "second": "u", "result": "du", "sutra": "8.2.39", "sutra_position": "08.02.039", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "t", "second": "e", "result": "de", "sutra": "8.2.39", "sutra_position": "08.02.039", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "k", "second": "a", "result": "ga", "sutra": "8.2.39", "sutra_position": "08.02.039", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "k", "second": "ā", "result": "gā", "sutra": "8.2.39", "sutra_position": "08.02.039", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "k", "second": "i", "result": "gi", "sutra": "8.2.39", "sutra_position": "08.02.039", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "k", "second": "ī", "result": "gī", "sutra": "8.2.39", "sutra_position": "08.02.039", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "ṭ", "second": "a", "result": "ḍa", "sutra": "8.2.39", "sutra_position": "08.02.039", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "p", "second": "a", "result": "ba", "sutra": "8.2.39", "sutra_position": "08.02.039", "rule_type": "utsarga"}),
+            serde_json::json!({"first": "p", "second": "i", "result": "bi", "sutra": "8.2.39", "sutra_position": "08.02.039", "rule_type": "utsarga"}),
         ];
 
         rules_json
@@ -449,6 +525,159 @@ mod tests {
             result.candidates.is_empty(),
             "expected no candidates for 'tatkim': {:#?}",
             result.candidates
+        );
+    }
+
+    #[test]
+    fn derive_class_assimilation_palatal() {
+        let rules = fixture_rules();
+        let result = derive_sandhi(
+            &rules,
+            SandhiInput { first: "tat".into(), second: "ca".into() },
+        ).unwrap();
+        assert_eq!(result.output["result"], "tacca");
+        assert_eq!(result.trace.len(), 1);
+        assert_eq!(result.trace[0].rule_ref.as_deref(), Some("8.4.40"));
+    }
+
+    #[test]
+    fn derive_class_assimilation_palatal_voiced() {
+        let rules = fixture_rules();
+        let result = derive_sandhi(
+            &rules,
+            SandhiInput { first: "tat".into(), second: "jayati".into() },
+        ).unwrap();
+        assert_eq!(result.output["result"], "tajjayati");
+        assert_eq!(result.trace[0].rule_ref.as_deref(), Some("8.4.40"));
+    }
+
+    #[test]
+    fn derive_class_assimilation_retroflex() {
+        let rules = fixture_rules();
+        let result = derive_sandhi(
+            &rules,
+            SandhiInput { first: "tat".into(), second: "ṭīkā".into() },
+        ).unwrap();
+        assert_eq!(result.output["result"], "taṭṭīkā");
+        assert_eq!(result.trace[0].rule_ref.as_deref(), Some("8.4.41"));
+    }
+
+    #[test]
+    fn derive_voicing_before_voiced() {
+        let rules = fixture_rules();
+        let result = derive_sandhi(
+            &rules,
+            SandhiInput { first: "tat".into(), second: "gacchati".into() },
+        ).unwrap();
+        assert_eq!(result.output["result"], "tadgacchati");
+        assert_eq!(result.trace[0].rule_ref.as_deref(), Some("8.4.53"));
+    }
+
+    #[test]
+    fn derive_nasal_assimilation() {
+        let rules = fixture_rules();
+        let result = derive_sandhi(
+            &rules,
+            SandhiInput { first: "tat".into(), second: "nayati".into() },
+        ).unwrap();
+        assert_eq!(result.output["result"], "tannayati");
+        assert_eq!(result.trace[0].rule_ref.as_deref(), Some("8.4.45"));
+    }
+
+    #[test]
+    fn derive_anusvara() {
+        let rules = fixture_rules();
+        let result = derive_sandhi(
+            &rules,
+            SandhiInput { first: "sam".into(), second: "kalpam".into() },
+        ).unwrap();
+        assert_eq!(result.output["result"], "saṃkalpam");
+        assert_eq!(result.trace[0].rule_ref.as_deref(), Some("8.3.23"));
+    }
+
+    #[test]
+    fn derive_stop_voicing_before_vowel() {
+        let rules = fixture_rules();
+        let result = derive_sandhi(
+            &rules,
+            SandhiInput { first: "tat".into(), second: "atra".into() },
+        ).unwrap();
+        assert_eq!(result.output["result"], "tadatra");
+        assert_eq!(result.trace[0].rule_ref.as_deref(), Some("8.2.39"));
+    }
+
+    #[test]
+    fn derive_velar_voicing_before_vowel() {
+        let rules = fixture_rules();
+        let result = derive_sandhi(
+            &rules,
+            SandhiInput { first: "vāk".into(), second: "īśvaraḥ".into() },
+        ).unwrap();
+        assert_eq!(result.output["result"], "vāgīśvaraḥ");
+        assert_eq!(result.trace[0].rule_ref.as_deref(), Some("8.2.39"));
+    }
+
+    #[test]
+    fn no_false_sandhi_velar_voiceless_palatal() {
+        let rules = fixture_rules();
+        let result = derive_sandhi(
+            &rules,
+            SandhiInput { first: "vāk".into(), second: "ca".into() },
+        ).unwrap();
+        assert_eq!(result.output["result"], "vākca");
+        assert!(result.trace.is_empty());
+    }
+
+    #[test]
+    fn analyze_consonant_round_trip() {
+        let rules = fixture_rules();
+        let cases = [
+            ("tat", "ca"),
+            ("tat", "jayati"),
+            ("tat", "ṭīkā"),
+            ("tat", "gacchati"),
+            ("tat", "nayati"),
+            ("sam", "kalpam"),
+            ("tat", "atra"),
+            ("vāk", "īśvaraḥ"),
+        ];
+        for (first, second) in cases {
+            let derived = derive_sandhi(
+                &rules,
+                SandhiInput { first: first.into(), second: second.into() },
+            ).unwrap();
+            let combined = derived.output["result"].as_str().unwrap();
+            let analyzed = analyze_sandhi(&rules, combined).unwrap();
+            let found = analyzed.candidates.iter().any(|c| c.first == first && c.second == second);
+            assert!(
+                found,
+                "consonant round-trip failed: {} + {} → {}: candidates = {:#?}",
+                first, second, combined, analyzed.candidates
+            );
+        }
+    }
+
+    #[test]
+    fn analyze_consonant_ranking() {
+        let mut rules = fixture_rules();
+        rules.push(CachedRule {
+            params: serde_json::json!({
+                "first": "t", "second": "g", "result": "dg",
+                "sutra": "8.4.53", "sutra_position": "08.04.053",
+                "rule_type": "apavāda"
+            }),
+            statement: "apavāda voicing rule".into(),
+        });
+        let result = analyze_sandhi(&rules, "tadgacchati").unwrap();
+        let matching: Vec<_> = result
+            .candidates
+            .iter()
+            .filter(|c| c.first == "tat" && c.second == "gacchati")
+            .collect();
+        assert!(matching.len() >= 2, "expected both utsarga and apavāda candidates");
+        assert!(
+            matching[0].specificity > matching[1].specificity,
+            "apavāda should rank before utsarga"
         );
     }
 
