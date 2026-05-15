@@ -10,7 +10,7 @@ pub struct Config {
 impl Config {
     pub fn from_env() -> Self {
         Self {
-            vidya_url: env_or("VIDYA_URL", "http://127.0.0.1:3200/mcp"),
+            vidya_url: env_or("VIDYA_URL", "http://127.0.0.1:3300/mcp"),
             vidya_auth_token: env::var("VIDYA_AUTH_TOKEN").ok(),
             log_level: env_or("PANINI_LOG_LEVEL", "info"),
         }
