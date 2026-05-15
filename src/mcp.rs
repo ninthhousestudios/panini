@@ -1,0 +1,143 @@
+use std::sync::Arc;
+
+use rmcp::handler::server::wrapper::Parameters;
+use rmcp::handler::server::router::tool::ToolRouter;
+use rmcp::model::{ServerCapabilities, ServerInfo};
+use rmcp::{ErrorData, ServerHandler, tool, tool_handler, tool_router};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
+use crate::engine;
+use crate::engine::sandhi::{SandhiInput, derive_sandhi};
+use crate::error::PaniniError;
+use crate::rule_cache::RuleCache;
+
+#[derive(Clone)]
+pub struct PaniniServer {
+    cache: Arc<RuleCache>,
+    tool_router: ToolRouter<Self>,
+}
+
+impl PaniniServer {
+    pub fn new(cache: Arc<RuleCache>) -> Self {
+        Self {
+            cache,
+            tool_router: Self::tool_router(),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct HealthArgs {}
+
+#[derive(Debug, Serialize)]
+pub struct HealthOutput {
+    pub status: &'static str,
+    pub version: &'static str,
+    pub rule_templates: usize,
+    pub total_rules: usize,
+    pub sandhi_rules: usize,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct DeriveArgs {
+    pub domain: String,
+    pub operation: String,
+    pub input: serde_json::Value,
+}
+
+#[derive(Debug, Serialize)]
+pub struct DeriveOutput {
+    pub domain: String,
+    pub operation: String,
+    pub input: serde_json::Value,
+    pub result: serde_json::Value,
+    pub trace: Vec<engine::TraceStep>,
+}
+
+#[tool_router(router = tool_router)]
+impl PaniniServer {
+    #[tool(description = "Health check. Returns version and rule cache statistics.")]
+    pub async fn panini_health(
+        &self,
+        Parameters(_args): Parameters<HealthArgs>,
+    ) -> Result<String, ErrorData> {
+        let out = HealthOutput {
+            status: "ok",
+            version: env!("CARGO_PKG_VERSION"),
+            rule_templates: self.cache.template_count(),
+            total_rules: self.cache.total_rules(),
+            sandhi_rules: self.cache.rule_count("sandhi_rule"),
+        };
+        serde_json::to_string_pretty(&out).map_err(json_err)
+    }
+
+    #[tool(description = "Forward derivation. domain=vyakarana, operation=sandhi. Input: {first, second}. Returns result and sūtra-cited trace.")]
+    pub async fn panini_derive(
+        &self,
+        Parameters(args): Parameters<DeriveArgs>,
+    ) -> Result<String, ErrorData> {
+        if args.domain != "vyakarana" {
+            return Err(to_error_data(PaniniError::InvalidArgument {
+                tool: "panini_derive".into(),
+                argument: "domain".into(),
+                constraint: "must be 'vyakarana'".into(),
+                received: args.domain,
+            }));
+        }
+        if args.operation != "sandhi" {
+            return Err(to_error_data(PaniniError::InvalidArgument {
+                tool: "panini_derive".into(),
+                argument: "operation".into(),
+                constraint: "must be 'sandhi'".into(),
+                received: args.operation,
+            }));
+        }
+
+        let rules = self.cache.get_rules("sandhi_rule");
+        if rules.is_empty() {
+            return Err(to_error_data(PaniniError::NoRulesLoaded(
+                "sandhi_rule".into(),
+            )));
+        }
+
+        let input: SandhiInput = serde_json::from_value(args.input.clone()).map_err(|e| {
+            to_error_data(PaniniError::InvalidArgument {
+                tool: "panini_derive".into(),
+                argument: "input".into(),
+                constraint: "requires {first, second} fields".into(),
+                received: e.to_string(),
+            })
+        })?;
+
+        let derive_result = derive_sandhi(rules, input).map_err(to_error_data)?;
+
+        let out = DeriveOutput {
+            domain: args.domain,
+            operation: args.operation,
+            input: args.input,
+            result: derive_result.output,
+            trace: derive_result.trace,
+        };
+        serde_json::to_string_pretty(&out).map_err(json_err)
+    }
+}
+
+#[tool_handler(router = self.tool_router)]
+impl ServerHandler for PaniniServer {
+    fn get_info(&self) -> ServerInfo {
+        ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
+            .with_instructions(
+                "panini v0.1.0 — Sanskrit grammatical derivation engine. \
+                 Tools: panini_health, panini_derive.",
+            )
+    }
+}
+
+fn json_err(e: serde_json::Error) -> ErrorData {
+    ErrorData::internal_error(format!("JSON serialization error: {e}"), None)
+}
+
+fn to_error_data(e: PaniniError) -> ErrorData {
+    ErrorData::internal_error(e.to_string(), None)
+}
