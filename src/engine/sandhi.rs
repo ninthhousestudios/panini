@@ -132,8 +132,11 @@ pub fn analyze_sandhi(rules: &[CachedRule], form: &str) -> Result<AnalyzeResult>
             continue;
         }
         let rlen = result_tokens.len();
+        if rlen > tokens.len() {
+            continue;
+        }
 
-        for i in 0..=tokens.len().saturating_sub(rlen) {
+        for i in 0..=tokens.len() - rlen {
             if tokens[i..i + rlen] != result_tokens[..] {
                 continue;
             }

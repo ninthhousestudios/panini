@@ -57,8 +57,8 @@ async fn main() -> anyhow::Result<()> {
             .fetch_claims("vyakarana", template)
             .await
             .context(format!("failed to fetch {template} from vidya"))?;
-        if claims.is_empty() && template == "sup_suffix" {
-            tracing::warn!("no sup_suffix rules loaded — declension will not work");
+        if claims.is_empty() {
+            anyhow::bail!("zero {template} rules loaded from vidya — declension requires all five template types");
         }
         let count = claims.len();
         cache.load_template(template.into(), claims);
