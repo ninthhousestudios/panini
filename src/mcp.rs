@@ -8,7 +8,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::engine;
-use crate::engine::sandhi::{SandhiInput, derive_sandhi};
+use crate::engine::sandhi::{SandhiInput, analyze_sandhi, derive_sandhi};
 use crate::error::PaniniError;
 use crate::rule_cache::RuleCache;
 
@@ -53,6 +53,21 @@ pub struct DeriveOutput {
     pub input: serde_json::Value,
     pub result: serde_json::Value,
     pub trace: Vec<engine::TraceStep>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct AnalyzeArgs {
+    pub domain: String,
+    pub operation: String,
+    pub form: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AnalyzeOutput {
+    pub domain: String,
+    pub operation: String,
+    pub form: String,
+    pub candidates: Vec<engine::AnalyzeCandidate>,
 }
 
 #[tool_router(router = tool_router)]
@@ -121,6 +136,46 @@ impl PaniniServer {
         };
         serde_json::to_string_pretty(&out).map_err(json_err)
     }
+
+    #[tool(description = "Reverse sandhi analysis. domain=vyakarana, operation=sandhi. Takes a combined form and returns ranked candidate decompositions with sūtra references.")]
+    pub async fn panini_analyze(
+        &self,
+        Parameters(args): Parameters<AnalyzeArgs>,
+    ) -> Result<String, ErrorData> {
+        if args.domain != "vyakarana" {
+            return Err(to_error_data(PaniniError::InvalidArgument {
+                tool: "panini_analyze".into(),
+                argument: "domain".into(),
+                constraint: "must be 'vyakarana'".into(),
+                received: args.domain,
+            }));
+        }
+        if args.operation != "sandhi" {
+            return Err(to_error_data(PaniniError::InvalidArgument {
+                tool: "panini_analyze".into(),
+                argument: "operation".into(),
+                constraint: "must be 'sandhi'".into(),
+                received: args.operation,
+            }));
+        }
+
+        let rules = self.cache.get_rules("sandhi_rule");
+        if rules.is_empty() {
+            return Err(to_error_data(PaniniError::NoRulesLoaded(
+                "sandhi_rule".into(),
+            )));
+        }
+
+        let analyze_result = analyze_sandhi(rules, &args.form).map_err(to_error_data)?;
+
+        let out = AnalyzeOutput {
+            domain: args.domain,
+            operation: args.operation,
+            form: args.form,
+            candidates: analyze_result.candidates,
+        };
+        serde_json::to_string_pretty(&out).map_err(json_err)
+    }
 }
 
 #[tool_handler(router = self.tool_router)]
@@ -129,7 +184,7 @@ impl ServerHandler for PaniniServer {
         ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
             .with_instructions(
                 "panini v0.1.0 — Sanskrit grammatical derivation engine. \
-                 Tools: panini_health, panini_derive.",
+                 Tools: panini_health, panini_derive, panini_analyze.",
             )
     }
 }

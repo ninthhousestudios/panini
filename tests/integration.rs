@@ -1,5 +1,5 @@
 use panini::config::Config;
-use panini::engine::sandhi::{SandhiInput, derive_sandhi};
+use panini::engine::sandhi::{SandhiInput, analyze_sandhi, derive_sandhi};
 use panini::rule_cache::RuleCache;
 use panini::vidya_client::VidyaClient;
 
@@ -103,6 +103,45 @@ async fn derive_visarga_sandhi_before_voiced_consonant() {
     .unwrap();
     assert_eq!(result.output["result"], "devogacchati");
     assert_eq!(result.trace[0].rule_ref.as_deref(), Some("8.3.17"));
+}
+
+#[tokio::test]
+async fn analyze_vowel_sandhi_round_trip() {
+    let cache = build_cache().await;
+    let rules = cache.get_rules("sandhi_rule");
+
+    let cases = [
+        ("deva", "indra"),
+        ("deva", "artha"),
+        ("deva", "udaya"),
+        ("devi", "atra"),
+    ];
+
+    for (first, second) in cases {
+        let derived = derive_sandhi(
+            rules,
+            SandhiInput { first: first.into(), second: second.into() },
+        ).unwrap();
+        let combined = derived.output["result"].as_str().unwrap();
+        let analyzed = analyze_sandhi(rules, combined).unwrap();
+        let found = analyzed.candidates.iter().any(|c| c.first == first && c.second == second);
+        assert!(found, "round-trip failed: {} + {} → {}", first, second, combined);
+    }
+}
+
+#[tokio::test]
+async fn analyze_visarga_round_trip() {
+    let cache = build_cache().await;
+    let rules = cache.get_rules("sandhi_rule");
+
+    let derived = derive_sandhi(
+        rules,
+        SandhiInput { first: "devaḥ".into(), second: "atra".into() },
+    ).unwrap();
+    let combined = derived.output["result"].as_str().unwrap();
+    let analyzed = analyze_sandhi(rules, combined).unwrap();
+    let found = analyzed.candidates.iter().any(|c| c.first == "devaḥ" && c.second == "atra");
+    assert!(found, "visarga round-trip failed: devaḥ + atra → {}", combined);
 }
 
 #[tokio::test]

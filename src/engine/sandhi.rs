@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
-use super::phoneme::{phoneme_ends_with, phoneme_starts_with, phoneme_strip_prefix, phoneme_strip_suffix};
-use super::{DeriveResult, TraceStep};
+use super::phoneme::{phoneme_ends_with, phoneme_starts_with, phoneme_strip_prefix, phoneme_strip_suffix, tokenize};
+use super::{AnalyzeCandidate, AnalyzeResult, DeriveResult, TraceStep};
 use crate::error::Result;
 use crate::rule_cache::CachedRule;
 
@@ -119,6 +119,62 @@ pub fn derive_sandhi(rules: &[CachedRule], input: SandhiInput) -> Result<DeriveR
             "steps": trace.len(),
         }),
         trace,
+    })
+}
+
+pub fn analyze_sandhi(rules: &[CachedRule], form: &str) -> Result<AnalyzeResult> {
+    let parsed_rules: Vec<(SandhiParams, &CachedRule)> = rules
+        .iter()
+        .filter_map(|rule| {
+            serde_json::from_value::<SandhiParams>(rule.params.clone())
+                .ok()
+                .filter(|p| p.condition_pratyaya.is_none())
+                .map(|p| (p, rule))
+        })
+        .collect();
+
+    let tokens = tokenize(form);
+    let mut candidates = Vec::new();
+
+    for (params, rule) in &parsed_rules {
+        let result_tokens = tokenize(&params.result);
+        if result_tokens.is_empty() {
+            continue;
+        }
+        let rlen = result_tokens.len();
+
+        for i in 0..=tokens.len().saturating_sub(rlen) {
+            if tokens[i..i + rlen] != result_tokens[..] {
+                continue;
+            }
+            let prefix: String = tokens[..i].concat();
+            let suffix: String = tokens[i + rlen..].concat();
+            let first = format!("{}{}", prefix, params.first);
+            let second = format!("{}{}", params.second, suffix);
+
+            if first.is_empty() || second.is_empty() {
+                continue;
+            }
+
+            candidates.push(AnalyzeCandidate {
+                first,
+                second,
+                rule: rule.statement.clone(),
+                rule_ref: if params.sutra.is_empty() {
+                    None
+                } else {
+                    Some(params.sutra.clone())
+                },
+                specificity: rule_type_priority(&params.rule_type),
+            });
+        }
+    }
+
+    candidates.sort_by(|a, b| b.specificity.cmp(&a.specificity));
+
+    Ok(AnalyzeResult {
+        input: form.to_string(),
+        candidates,
     })
 }
 
@@ -328,5 +384,105 @@ mod tests {
         .unwrap();
         assert_eq!(result.output["result"], "ai");
         assert!(result.trace.is_empty());
+    }
+
+    #[test]
+    fn analyze_guna_vowel() {
+        let rules = fixture_rules();
+        let result = analyze_sandhi(&rules, "devendra").unwrap();
+        let found = result
+            .candidates
+            .iter()
+            .any(|c| c.first == "deva" && c.second == "indra");
+        assert!(found, "expected deva + indra in candidates: {:#?}", result.candidates);
+    }
+
+    #[test]
+    fn analyze_visarga_before_a() {
+        let rules = fixture_rules();
+        // rāmaḥ + atra → rāmo 'tra (rule: aḥ + a → o ')
+        let result = analyze_sandhi(&rules, "rāmo 'tra").unwrap();
+        let found = result
+            .candidates
+            .iter()
+            .any(|c| c.first == "rāmaḥ" && c.second == "atra");
+        assert!(found, "expected rāmaḥ + atra in candidates: {:#?}", result.candidates);
+    }
+
+    #[test]
+    fn analyze_visarga_before_voiced() {
+        let rules = fixture_rules();
+        // naraḥ + gacchati → narogacchati (rule: aḥ + g → og)
+        let result = analyze_sandhi(&rules, "narogacchati").unwrap();
+        let found = result
+            .candidates
+            .iter()
+            .any(|c| c.first == "naraḥ" && c.second == "gacchati");
+        assert!(found, "expected naraḥ + gacchati in candidates: {:#?}", result.candidates);
+    }
+
+    #[test]
+    fn analyze_specificity_ranking() {
+        let mut rules = fixture_rules();
+        // Add an apavāda rule that also produces "e" from a+i (same result, higher priority)
+        rules.push(CachedRule {
+            params: serde_json::json!({
+                "first": "a", "second": "i", "result": "e",
+                "sutra": "6.1.94", "sutra_position": "06.01.094",
+                "rule_type": "apavāda"
+            }),
+            statement: "apavāda guṇa rule".into(),
+        });
+        let result = analyze_sandhi(&rules, "devendra").unwrap();
+        let matching: Vec<_> = result
+            .candidates
+            .iter()
+            .filter(|c| c.first == "deva" && c.second == "indra")
+            .collect();
+        assert!(matching.len() >= 2, "expected at least 2 matching candidates");
+        assert!(
+            matching[0].specificity > matching[1].specificity,
+            "apavāda ({}) should rank before utsarga ({})",
+            matching[0].specificity,
+            matching[1].specificity
+        );
+    }
+
+    #[test]
+    fn analyze_no_valid_decomposition() {
+        let rules = fixture_rules();
+        let result = analyze_sandhi(&rules, "tatkim").unwrap();
+        assert!(
+            result.candidates.is_empty(),
+            "expected no candidates for 'tatkim': {:#?}",
+            result.candidates
+        );
+    }
+
+    #[test]
+    fn round_trip_vowel_cases() {
+        let rules = fixture_rules();
+        let cases = [
+            ("deva", "indra"),   // a+i → e (guṇa)
+            ("deva", "artha"),   // a+a → ā (savarna-dīrgha)
+            ("deva", "udaya"),   // a+u → o (guṇa)
+            ("deva", "eṣa"),    // a+e → ai (vṛddhi)
+            ("deva", "ojas"),    // a+o → au (vṛddhi)
+            ("devi", "atra"),    // i+a → ya (yan)
+        ];
+        for (first, second) in cases {
+            let derived = derive_sandhi(
+                &rules,
+                SandhiInput { first: first.into(), second: second.into() },
+            ).unwrap();
+            let combined = derived.output["result"].as_str().unwrap();
+            let analyzed = analyze_sandhi(&rules, combined).unwrap();
+            let found = analyzed.candidates.iter().any(|c| c.first == first && c.second == second);
+            assert!(
+                found,
+                "round-trip failed for {} + {} → {}: candidates = {:#?}",
+                first, second, combined, analyzed.candidates
+            );
+        }
     }
 }
