@@ -232,8 +232,14 @@ impl PaniniServer {
                 serde_json::to_string_pretty(&out).map_err(json_err)
             }
             "declension" => {
+                let sup = self.cache.get_rules("sup_suffix");
+                if sup.is_empty() {
+                    return Err(to_error_data(PaniniError::NoRulesLoaded(
+                        "sup_suffix".into(),
+                    )));
+                }
                 let result = analyze_declension(
-                    self.cache.get_rules("sup_suffix"),
+                    sup,
                     self.cache.get_rules("pratyaya_rule"),
                     self.cache.get_rules("anga_rule"),
                     self.cache.get_rules("sandhi_rule"),
