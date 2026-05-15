@@ -59,12 +59,22 @@ async fn main() -> anyhow::Result<()> {
         http_port,
     } = cli.command;
 
-    let cache = build_cache(&cfg).await?;
-
     if stdio {
+        let cache = build_cache(&cfg).await?;
         serve_stdio(cache).await
     } else {
-        serve_http(auth_token_file, http_port, cache, &cfg).await
+        let port = http_port.unwrap_or(cfg.http_port);
+        let addr = format!("{}:{}", cfg.http_host, port);
+        let listener = match TcpListener::bind(&addr).await {
+            Ok(l) => l,
+            Err(e) if e.kind() == std::io::ErrorKind::AddrInUse => {
+                eprintln!("panini already running on {addr}");
+                std::process::exit(0);
+            }
+            Err(e) => return Err(e.into()),
+        };
+        let cache = build_cache(&cfg).await?;
+        serve_http(auth_token_file, cache, listener).await
     }
 }
 
@@ -132,9 +142,8 @@ async fn serve_stdio(cache: Arc<RuleCache>) -> anyhow::Result<()> {
 
 async fn serve_http(
     auth_token_file: Option<PathBuf>,
-    port_override: Option<u16>,
     cache: Arc<RuleCache>,
-    cfg: &Config,
+    listener: TcpListener,
 ) -> anyhow::Result<()> {
     let bearer_token = match auth_token_file {
         Some(path) => {
@@ -220,21 +229,14 @@ async fn serve_http(
             .merge(protected)
     };
 
-    let port = port_override.unwrap_or(cfg.http_port);
-    let addr = format!("{}:{}", cfg.http_host, port);
-    let listener = match TcpListener::bind(&addr).await {
-        Ok(l) => l,
-        Err(e) if e.kind() == std::io::ErrorKind::AddrInUse => {
-            eprintln!("panini already running on {addr}");
-            std::process::exit(0);
-        }
-        Err(e) => return Err(e.into()),
-    };
+    let addr = listener.local_addr()?;
     tracing::info!(%addr, "panini HTTP server listening");
     axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal())
+        .with_graceful_shutdown(async move {
+            shutdown_signal().await;
+            cancel.cancel();
+        })
         .await?;
-    cancel.cancel();
     Ok(())
 }
 
