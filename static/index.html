@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pāṇini — Paradigm Explorer</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #faf8f5;
+  --surface: #fff;
+  --border: #d4c8b8;
+  --text: #2c2416;
+  --text-secondary: #6b5d4d;
+  --accent: #8b4513;
+  --accent-light: #f5ebe0;
+  --error-bg: #fef2f2;
+  --error-text: #991b1b;
+  --trace-bg: #f9f6f2;
+  --mono: "Menlo", "Consolas", "DejaVu Sans Mono", monospace;
+  --sans: system-ui, -apple-system, sans-serif;
+  --devanagari: "Noto Sans Devanagari", "Devanagari MT", sans-serif;
+}
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--accent);
+}
+
+h1 span { font-weight: 400; color: var(--text-secondary); }
+
+.input-bar {
+  display: flex;
+  gap: 0.75rem;
+  align-items: end;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.field { display: flex; flex-direction: column; gap: 0.25rem; }
+.field label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.field input, .field select {
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.field input:focus, .field select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.field-stem { flex: 1; min-width: 160px; }
+.field-stem input { width: 100%; }
+
+button {
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border: none;
+  border-radius: 4px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+button:hover { opacity: 0.9; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+#status {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  min-height: 1.3em;
+}
+
+#status.error { color: var(--error-text); }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+thead th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  background: var(--accent-light);
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+thead th:first-child { text-align: left; }
+
+tbody td {
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  vertical-align: top;
+  transition: background 0.15s;
+}
+
+tbody td:first-child {
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  cursor: default;
+  background: var(--accent-light);
+  white-space: nowrap;
+}
+
+tbody tr:last-child td { border-bottom: none; }
+tbody td:hover:not(:first-child) { background: var(--accent-light); }
+
+.cell-deva {
+  font-family: var(--devanagari);
+  font-size: 1.1rem;
+  line-height: 1.3;
+  display: block;
+}
+
+.cell-iast {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  display: block;
+}
+
+.cell-error {
+  font-size: 0.75rem;
+  color: var(--error-text);
+  background: var(--error-bg);
+  padding: 0.2rem 0.4rem;
+  border-radius: 2px;
+}
+
+.trace-panel {
+  margin-top: 1rem;
+  background: var(--trace-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1rem;
+  display: none;
+}
+
+.trace-panel.open { display: block; }
+
+.trace-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.trace-header h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.trace-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0;
+  line-height: 1;
+}
+
+.trace-close:hover { color: var(--text); }
+
+.trace-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  background: var(--surface);
+}
+
+.trace-table th {
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.trace-table td {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid #eee;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  cursor: default;
+  text-align: left;
+}
+
+.trace-table td:first-child { color: var(--text-secondary); text-align: center; }
+
+.trace-rule-ref {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+@media (max-width: 600px) {
+  .input-bar { flex-direction: column; align-items: stretch; }
+  .container { padding: 1rem; }
+  table { font-size: 0.85rem; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Pāṇini <span>paradigm explorer</span></h1>
+
+  <div class="input-bar">
+    <div class="field field-stem">
+      <label for="stem">Stem (IAST)</label>
+      <input id="stem" type="text" placeholder="deva" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="field">
+      <label for="stem-type">Stem type</label>
+      <input id="stem-type" type="text" list="stem-types" value="a-stem-m" placeholder="a-stem-m" autocomplete="off">
+      <datalist id="stem-types">
+        <option value="a-stem-m">a-stem masc</option>
+        <option value="a-stem-n">a-stem neut</option>
+        <option value="aa-stem-f">ā-stem fem</option>
+        <option value="i-stem-m">i-stem masc</option>
+        <option value="u-stem-m">u-stem masc</option>
+      </datalist>
+    </div>
+    <button id="go" type="button">Generate</button>
+  </div>
+
+  <div id="status"></div>
+
+  <div id="grid-wrap"></div>
+
+  <div id="trace-panel" class="trace-panel">
+    <div class="trace-header">
+      <h3 id="trace-title"></h3>
+      <button class="trace-close" id="trace-close" title="Close">&times;</button>
+    </div>
+    <div id="trace-body"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const IAST_TO_DEVA = [
+  ["ai","ऐ"],["au","औ"],
+  ["kh","ख"],["gh","घ"],["ch","छ"],["jh","झ"],
+  ["ṭh","ठ"],["ḍh","ढ"],["th","थ"],["dh","ध"],["ph","फ"],["bh","भ"],
+  ["ṅ","ङ"],["ñ","ञ"],["ṇ","ण"],["ṃ","ं"],["ḥ","ः"],
+  ["ā","आ"],["ī","ई"],["ū","ऊ"],["ṝ","ॠ"],["ṛ","ऋ"],["ḷ","ऌ"],
+  ["a","अ"],["i","इ"],["u","उ"],["e","ए"],["o","ओ"],
+  ["k","क"],["g","ग"],["ṅ","ङ"],["c","च"],["j","ज"],
+  ["ṭ","ट"],["ḍ","ड"],["ṇ","ण"],["t","त"],["d","द"],["n","न"],
+  ["p","प"],["b","ब"],["m","म"],
+  ["y","य"],["r","र"],["l","ल"],["v","व"],
+  ["ś","श"],["ṣ","ष"],["s","स"],["h","ह"],
+];
+
+const VOWEL_SIGNS = {
+  "आ":"ा","इ":"ि","ई":"ी","उ":"ु","ऊ":"ू",
+  "ऋ":"ृ","ॠ":"ॄ","ऌ":"ॢ","ए":"े","ऐ":"ै","ओ":"ो","औ":"ौ",
+};
+
+const INDEPENDENT_VOWELS = new Set([
+  "अ","आ","इ","ई","उ","ऊ","ऋ","ॠ","ऌ","ए","ऐ","ओ","औ"
+]);
+
+const CONSONANTS = new Set([
+  "क","ख","ग","घ","ङ","च","छ","ज","झ","ञ",
+  "ट","ठ","ड","ढ","ण","त","थ","द","ध","न",
+  "प","फ","ब","भ","म","य","र","ल","व","श","ष","स","ह"
+]);
+
+function iastToDeva(iast) {
+  if (!iast) return "";
+  let tokens = [];
+  let s = iast.toLowerCase();
+  while (s.length > 0) {
+    let found = false;
+    for (let [lat, dev] of IAST_TO_DEVA) {
+      if (s.startsWith(lat)) {
+        tokens.push(dev);
+        s = s.slice(lat.length);
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      tokens.push(s[0]);
+      s = s.slice(1);
+    }
+  }
+
+  let result = "";
+  for (let i = 0; i < tokens.length; i++) {
+    let tok = tokens[i];
+    if (CONSONANTS.has(tok)) {
+      let next = tokens[i + 1];
+      if (next && INDEPENDENT_VOWELS.has(next)) {
+        if (next === "अ") {
+          result += tok;
+        } else {
+          result += tok + (VOWEL_SIGNS[next] || "");
+        }
+        i++;
+      } else {
+        result += tok + "्";
+      }
+    } else {
+      result += tok;
+    }
+  }
+  return result;
+}
+
+const CASE_LABELS = {
+  "1": "prathamā (nom.)",
+  "2": "dvitīyā (acc.)",
+  "3": "tṛtīyā (ins.)",
+  "4": "caturthī (dat.)",
+  "5": "pañcamī (abl.)",
+  "6": "ṣaṣṭhī (gen.)",
+  "7": "saptamī (loc.)",
+  "8": "sambodhana (voc.)",
+};
+
+const NUMBER_LABELS = { "sg": "ekavacana", "du": "dvivacana", "pl": "bahuvacana" };
+
+let currentCells = null;
+
+document.getElementById("go").addEventListener("click", generate);
+document.getElementById("stem").addEventListener("keydown", e => {
+  if (e.key === "Enter") generate();
+});
+document.getElementById("trace-close").addEventListener("click", () => {
+  document.getElementById("trace-panel").classList.remove("open");
+});
+
+async function generate() {
+  const stem = document.getElementById("stem").value.trim();
+  const stemType = document.getElementById("stem-type").value;
+  const status = document.getElementById("status");
+  const gridWrap = document.getElementById("grid-wrap");
+  const tracePanel = document.getElementById("trace-panel");
+
+  if (!stem) { status.textContent = "Enter a stem."; status.className = "error"; return; }
+
+  status.textContent = "Generating…";
+  status.className = "";
+  tracePanel.classList.remove("open");
+  document.getElementById("go").disabled = true;
+
+  try {
+    const resp = await fetch("/api/paradigm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ domain: "vyakarana", stem, stem_type: stemType }),
+    });
+
+    if (!resp.ok) {
+      const text = await resp.text();
+      throw new Error(text || resp.statusText);
+    }
+
+    const data = await resp.json();
+    currentCells = data.cells;
+    renderGrid(data);
+    status.textContent = `${data.stem} (${data.stem_type})`;
+    status.className = "";
+  } catch (e) {
+    status.textContent = e.message;
+    status.className = "error";
+    gridWrap.innerHTML = "";
+  } finally {
+    document.getElementById("go").disabled = false;
+  }
+}
+
+function renderGrid(data) {
+  const wrap = document.getElementById("grid-wrap");
+  const cases = ["1","2","3","4","5","6","7","8"];
+  const numbers = ["sg","du","pl"];
+
+  const cellMap = {};
+  for (const c of data.cells) {
+    cellMap[c.case + ":" + c.number] = c;
+  }
+
+  let html = "<table><thead><tr><th></th>";
+  for (const n of numbers) {
+    html += `<th>${NUMBER_LABELS[n]}</th>`;
+  }
+  html += "</tr></thead><tbody>";
+
+  for (const cas of cases) {
+    html += `<tr><td>${CASE_LABELS[cas]}</td>`;
+    for (const num of numbers) {
+      const cell = cellMap[cas + ":" + num];
+      if (!cell) {
+        html += "<td>—</td>";
+      } else if (cell.error) {
+        html += `<td><span class="cell-error" title="${esc(cell.error)}">error</span></td>`;
+      } else {
+        const deva = iastToDeva(cell.form);
+        html += `<td data-case="${cas}" data-number="${num}">` +
+          `<span class="cell-deva">${esc(deva)}</span>` +
+          `<span class="cell-iast">${esc(cell.form)}</span></td>`;
+      }
+    }
+    html += "</tr>";
+  }
+  html += "</tbody></table>";
+  wrap.innerHTML = html;
+
+  wrap.querySelectorAll("td[data-case]").forEach(td => {
+    td.addEventListener("click", () => {
+      showTrace(td.dataset.case, td.dataset.number);
+    });
+  });
+}
+
+function showTrace(cas, num) {
+  if (!currentCells) return;
+  const cell = currentCells.find(c => c.case === cas && c.number === num);
+  if (!cell || !cell.trace || cell.trace.length === 0) return;
+
+  const panel = document.getElementById("trace-panel");
+  const title = document.getElementById("trace-title");
+  const body = document.getElementById("trace-body");
+
+  title.textContent = `${CASE_LABELS[cas]} ${NUMBER_LABELS[num]} — ${cell.form}`;
+
+  let html = `<table class="trace-table"><thead><tr>` +
+    `<th>#</th><th>Rule</th><th>Input</th><th>Output</th>` +
+    `</tr></thead><tbody>`;
+
+  for (const step of cell.trace) {
+    const ref = step.rule_ref ? `<span class="trace-rule-ref">${esc(step.rule_ref)}</span> ` : "";
+    html += `<tr>` +
+      `<td>${step.step}</td>` +
+      `<td>${ref}${esc(step.rule)}</td>` +
+      `<td>${esc(step.input_state)}</td>` +
+      `<td>${esc(step.output_state)}</td>` +
+      `</tr>`;
+  }
+  html += "</tbody></table>";
+  body.innerHTML = html;
+  panel.classList.add("open");
+  panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function esc(s) {
+  if (!s) return "";
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+</script>
+</body>
+</html>
