@@ -27,7 +27,7 @@ tower-http = { version = "0.6", features = ["auth"] }
 tokio-util = "0.7"
 clap = { version = "4", features = ["derive"] }
 dotenvy = "0.15"
+iced = { version = "0.14", default-features = true }
 
 [dev-dependencies]
 proptest = "1"
-iced = { version = "0.14", default-features = true }

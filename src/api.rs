@@ -220,7 +220,7 @@ pub async fn paradigm(
     }))
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct SutraEntry {
     pub sutra: String,
     pub statement: String,

@@ -2,6 +2,7 @@ pub mod consistency;
 pub mod declension;
 pub mod phoneme;
 pub mod sandhi;
+pub mod script;
 
 use serde::Serialize;
 
@@ -21,7 +22,7 @@ pub struct DeriveResult {
     pub trace: Vec<TraceStep>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct TraceStep {
     pub step: usize,
     pub rule: String,
@@ -36,7 +37,7 @@ pub struct AnalyzeResult {
     pub candidates: Vec<AnalyzeCandidate>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct AnalyzeCandidate {
     pub first: String,
     pub second: String,

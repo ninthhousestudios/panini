@@ -26,11 +26,12 @@ use panini::vidya_client::VidyaClient;
 #[command(name = "panini", version)]
 struct Cli {
     #[command(subcommand)]
-    command: Command,
+    command: Option<Command>,
 }
 
 #[derive(clap::Subcommand)]
 enum Command {
+    Gui,
     Serve {
         #[arg(long)]
         stdio: bool,
@@ -55,28 +56,38 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     let cli = Cli::parse();
-    let Command::Serve {
-        stdio,
-        auth_token_file,
-        http_port,
-    } = cli.command;
 
-    if stdio {
-        let cache = build_cache(&cfg).await?;
-        serve_stdio(cache).await
-    } else {
-        let port = http_port.unwrap_or(cfg.http_port);
-        let addr = format!("{}:{}", cfg.http_host, port);
-        let listener = match TcpListener::bind(&addr).await {
-            Ok(l) => l,
-            Err(e) if e.kind() == std::io::ErrorKind::AddrInUse => {
-                eprintln!("panini already running on {addr}");
-                std::process::exit(0);
+    match cli.command.unwrap_or(Command::Gui) {
+        Command::Gui => {
+            eprintln!("Loading rules from vidya…");
+            let cache = build_cache(&cfg).await?;
+            eprintln!("Launching GUI…");
+            panini::gui::run(cache).map_err(|e| anyhow::anyhow!("{e}"))?;
+            Ok(())
+        }
+        Command::Serve {
+            stdio,
+            auth_token_file,
+            http_port,
+        } => {
+            if stdio {
+                let cache = build_cache(&cfg).await?;
+                serve_stdio(cache).await
+            } else {
+                let port = http_port.unwrap_or(cfg.http_port);
+                let addr = format!("{}:{}", cfg.http_host, port);
+                let listener = match TcpListener::bind(&addr).await {
+                    Ok(l) => l,
+                    Err(e) if e.kind() == std::io::ErrorKind::AddrInUse => {
+                        eprintln!("panini already running on {addr}");
+                        std::process::exit(0);
+                    }
+                    Err(e) => return Err(e.into()),
+                };
+                let cache = build_cache(&cfg).await?;
+                serve_http(auth_token_file, cache, listener).await
             }
-            Err(e) => return Err(e.into()),
-        };
-        let cache = build_cache(&cfg).await?;
-        serve_http(auth_token_file, cache, listener).await
+        }
     }
 }
 

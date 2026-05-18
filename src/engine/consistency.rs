@@ -7,7 +7,7 @@ use crate::rule_cache::CachedRule;
 
 // --- Shared report types ---
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct CheckReport {
     pub template: String,
     pub total_rules: usize,
@@ -20,14 +20,14 @@ pub struct CheckReport {
     pub summary: ReportSummary,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct RuleParseError {
     pub index: usize,
     pub statement: String,
     pub error: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ShadowedRule {
     pub shadowed_sutra: String,
     pub shadowed_type: String,
@@ -36,7 +36,7 @@ pub struct ShadowedRule {
     pub pattern: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct AmbiguousOverlap {
     pub pattern: String,
     pub rule_a_sutra: String,
@@ -47,13 +47,13 @@ pub struct AmbiguousOverlap {
     pub rule_b_type: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct CoverageDimension {
     pub label: String,
     pub values: Vec<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct CoverageSummary {
     pub dimensions: Vec<CoverageDimension>,
     pub covered_combinations: usize,
@@ -62,7 +62,7 @@ pub struct CoverageSummary {
     pub rules_by_type: BTreeMap<String, usize>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ParadigmGap {
     pub stem_class: String,
     pub missing_cells: Vec<String>,
@@ -70,7 +70,7 @@ pub struct ParadigmGap {
     pub expected: usize,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ReportSummary {
     pub clean: bool,
     pub parse_error_count: usize,
