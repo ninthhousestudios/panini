@@ -421,6 +421,151 @@ tbody tr:last-child td { border-bottom: none; }
   margin-bottom: 0.75rem;
 }
 
+/* --- Verification tab --- */
+.verify-intro {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.check-report {
+  margin-bottom: 2rem;
+}
+
+.check-report h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 0.75rem;
+}
+
+.verdict-box {
+  padding: 1rem 1.25rem;
+  border-radius: 6px;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.verdict-clean {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
+.verdict-issues {
+  background: var(--error-bg);
+  border: 1px solid #fca5a5;
+  color: var(--error-text);
+}
+
+.check-section {
+  margin-bottom: 1.25rem;
+}
+
+.check-section h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+
+.check-section .empty-note {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.issue-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.6rem 1rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.issue-card .pattern {
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.issue-card .detail {
+  color: var(--text-secondary);
+  margin-top: 0.2rem;
+}
+
+.coverage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.coverage-stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  text-align: center;
+}
+
+.coverage-stat .stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent);
+  display: block;
+}
+
+.coverage-stat .stat-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.sutra-breakdown {
+  columns: 2;
+  column-gap: 1rem;
+  list-style: none;
+}
+
+.sutra-breakdown li {
+  font-size: 0.85rem;
+  padding: 0.15rem 0;
+  break-inside: avoid;
+}
+
+.sutra-breakdown .sb-num {
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--accent);
+  min-width: 5em;
+  display: inline-block;
+}
+
+.sutra-breakdown .sb-count {
+  color: var(--text-secondary);
+}
+
+.type-breakdown {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.type-badge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 3px;
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
 @media (max-width: 600px) {
   .input-bar { flex-direction: column; align-items: stretch; }
   .container { padding: 1rem; }
@@ -437,6 +582,7 @@ tbody tr:last-child td { border-bottom: none; }
     <button class="active" data-tab="paradigm">Paradigms</button>
     <button data-tab="sandhi">Sandhi</button>
     <button data-tab="sutras">Sūtras</button>
+    <button data-tab="verify">Verification</button>
   </div>
 
   <!-- ============ PARADIGM TAB ============ -->
@@ -519,6 +665,13 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
     <div id="sutra-count" class="sutra-count"></div>
     <ul id="sutra-list" class="sutra-list"></ul>
+  </div>
+
+  <!-- ============ VERIFICATION TAB ============ -->
+  <div id="tab-verify" class="tab-view">
+    <p class="verify-intro">Automated consistency checks against the loaded rule set. These verify that the implementation is internally coherent: no shadowed rules, no ambiguous overlaps, and full coverage reporting.</p>
+    <div id="v-status" class="status"></div>
+    <div id="v-reports"></div>
   </div>
 </div>
 
@@ -613,6 +766,7 @@ document.querySelector(".tab-bar").addEventListener("click", e => {
   btn.classList.add("active");
   document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
   if (btn.dataset.tab === "sutras" && !sutrasLoaded) loadSutras();
+  if (btn.dataset.tab === "verify" && !verifyLoaded) loadVerification();
 });
 
 document.querySelectorAll("[data-close]").forEach(btn => {
@@ -910,6 +1064,139 @@ document.getElementById("sutra-q").addEventListener("input", e => {
   );
   renderSutras(filtered);
 });
+
+// ============ VERIFICATION TAB ============
+
+let verifyLoaded = false;
+
+async function loadVerification() {
+  const status = document.getElementById("v-status");
+  const reports = document.getElementById("v-reports");
+  status.textContent = "Running consistency checks…";
+  status.className = "status";
+
+  try {
+    const resp = await fetch("/api/check");
+    if (!resp.ok) throw new Error(await resp.text() || resp.statusText);
+    const data = await resp.json();
+    verifyLoaded = true;
+    status.textContent = "";
+    renderVerification(data);
+  } catch (e) {
+    status.textContent = e.message;
+    status.className = "status error";
+  }
+}
+
+function renderVerification(data) {
+  const container = document.getElementById("v-reports");
+  let html = "";
+
+  for (const report of data) {
+    html += `<div class="check-report">`;
+    html += `<h2>${esc(report.template)} (${report.total_rules} rules)</h2>`;
+
+    const s = report.summary;
+    const cls = s.clean ? "verdict-clean" : "verdict-issues";
+    html += `<div class="verdict-box ${cls}">${esc(s.verdict)}</div>`;
+
+    // Coverage stats
+    html += `<div class="check-section"><h3>Coverage</h3>`;
+    html += `<div class="coverage-grid">`;
+    const cov = report.coverage;
+    html += renderStat(cov.covered_combinations, cov.covered_combinations_label);
+    html += renderStat(Object.keys(cov.rules_by_sutra).length, "distinct sūtras");
+    for (const dim of cov.dimensions) {
+      html += renderStat(dim.values.length, dim.label);
+    }
+    html += `</div>`;
+
+    // Type breakdown
+    const types = report.coverage.rules_by_type;
+    if (Object.keys(types).length > 0) {
+      html += `<div class="type-breakdown">`;
+      for (const [type, count] of Object.entries(types)) {
+        html += `<span class="type-badge">${esc(type)}: ${count}</span>`;
+      }
+      html += `</div>`;
+    }
+
+    // Sutra breakdown
+    const sutras = report.coverage.rules_by_sutra;
+    const sutraKeys = Object.keys(sutras).sort();
+    if (sutraKeys.length > 0) {
+      html += `<ul class="sutra-breakdown">`;
+      for (const k of sutraKeys) {
+        html += `<li><span class="sb-num">${esc(k)}</span> <span class="sb-count">${sutras[k]} rule${sutras[k] !== 1 ? "s" : ""}</span></li>`;
+      }
+      html += `</ul>`;
+    }
+    html += `</div>`;
+
+    // Parse errors
+    html += `<div class="check-section"><h3>Parse Errors</h3>`;
+    if (report.parse_errors.length === 0) {
+      html += `<div class="empty-note">None</div>`;
+    } else {
+      for (const err of report.parse_errors) {
+        html += `<div class="issue-card">`;
+        html += `<div class="pattern">Rule #${err.index}: ${esc(err.statement)}</div>`;
+        html += `<div class="detail">${esc(err.error)}</div>`;
+        html += `</div>`;
+      }
+    }
+    html += `</div>`;
+
+    // Shadowed rules
+    html += `<div class="check-section"><h3>Shadowed Rules</h3>`;
+    if (report.shadowed_rules.length === 0) {
+      html += `<div class="empty-note">None — every rule is reachable</div>`;
+    } else {
+      for (const sh of report.shadowed_rules) {
+        html += `<div class="issue-card">`;
+        html += `<div class="pattern">${esc(sh.pattern)}</div>`;
+        html += `<div class="detail">${esc(sh.shadowed_sutra)} (${esc(sh.shadowed_type)}) is shadowed by ${esc(sh.shadowed_by_sutra)} (${esc(sh.shadowed_by_type)})</div>`;
+        html += `</div>`;
+      }
+    }
+    html += `</div>`;
+
+    // Ambiguous overlaps
+    html += `<div class="check-section"><h3>Ambiguous Overlaps</h3>`;
+    if (report.ambiguous_overlaps.length === 0) {
+      html += `<div class="empty-note">None — no rules produce conflicting results at the same priority</div>`;
+    } else {
+      for (const ao of report.ambiguous_overlaps) {
+        html += `<div class="issue-card">`;
+        html += `<div class="pattern">${esc(ao.pattern)}</div>`;
+        html += `<div class="detail">${esc(ao.rule_a_sutra)} → ${esc(ao.rule_a_result)} vs ${esc(ao.rule_b_sutra)} → ${esc(ao.rule_b_result)} (both ${esc(ao.rule_a_type)})</div>`;
+        html += `</div>`;
+      }
+    }
+    html += `</div>`;
+
+    // Paradigm gaps
+    const gaps = report.paradigm_gaps || [];
+    if (gaps.length > 0) {
+      html += `<div class="check-section"><h3>Paradigm Gaps</h3>`;
+      for (const gap of gaps) {
+        html += `<div class="issue-card">`;
+        html += `<div class="pattern">${esc(gap.stem_class)} — ${gap.present}/${gap.expected} cells</div>`;
+        html += `<div class="detail">Missing: ${gap.missing_cells.map(esc).join(", ")}</div>`;
+        html += `</div>`;
+      }
+      html += `</div>`;
+    }
+
+    html += `</div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function renderStat(value, label) {
+  return `<div class="coverage-stat"><span class="stat-value">${value}</span><span class="stat-label">${esc(label)}</span></div>`;
+}
 </script>
 </body>
 </html>

@@ -208,6 +208,7 @@ async fn serve_http(
         .route("/api/analyze", post(api::analyze))
         .route("/api/paradigm", post(api::paradigm))
         .route("/api/sutras", get(api::sutras))
+        .route("/api/check", get(api::check))
         .with_state(cache);
 
     let protected = axum::Router::new()

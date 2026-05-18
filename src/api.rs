@@ -7,6 +7,10 @@ use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde::Serialize;
 
+use crate::engine::consistency::{
+    CheckReport, check_anga_rules, check_pratyaya_rules, check_sandhi_rules, check_sup_suffix,
+    check_tripadi_rules,
+};
 use crate::engine::declension::{DeclensionInput, analyze_declension, derive_declension};
 use crate::engine::sandhi::{SandhiInput, analyze_sandhi, derive_sandhi};
 use crate::error::PaniniError;
@@ -251,6 +255,37 @@ pub async fn sutras(State(cache): State<AppState>) -> Json<Vec<SutraEntry>> {
         .collect();
 
     Json(entries)
+}
+
+pub async fn check(State(cache): State<AppState>) -> Json<Vec<CheckReport>> {
+    let mut reports = Vec::new();
+
+    let sandhi = cache.get_rules("sandhi_rule");
+    if !sandhi.is_empty() {
+        reports.push(check_sandhi_rules(sandhi));
+    }
+
+    let sup = cache.get_rules("sup_suffix");
+    if !sup.is_empty() {
+        reports.push(check_sup_suffix(sup));
+    }
+
+    let pratyaya = cache.get_rules("pratyaya_rule");
+    if !pratyaya.is_empty() {
+        reports.push(check_pratyaya_rules(pratyaya));
+    }
+
+    let anga = cache.get_rules("anga_rule");
+    if !anga.is_empty() {
+        reports.push(check_anga_rules(anga));
+    }
+
+    let tripadi = cache.get_rules("tripadi_rule");
+    if !tripadi.is_empty() {
+        reports.push(check_tripadi_rules(tripadi));
+    }
+
+    Json(reports)
 }
 
 fn validate_domain(endpoint: &str, domain: &str) -> Result<(), ApiError> {
