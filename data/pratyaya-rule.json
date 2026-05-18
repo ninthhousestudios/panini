@@ -1,0 +1,107 @@
+[
+  {
+    "params": {
+      "condition_stem_class": "a-stem-m",
+      "condition_suffix": "bhis",
+      "condition_markers": [],
+      "input_suffix": "bhis",
+      "output_suffix": "ais",
+      "sutra": "7.1.9",
+      "sutra_position": "07.01.009",
+      "rule_type": "nitya"
+    },
+    "statement": "bhis → ais after a-stem (Aṣṭ. 7.1.9)"
+  },
+  {
+    "params": {
+      "condition_stem_class": "a-stem-m",
+      "condition_suffix": "ṭā",
+      "condition_markers": [],
+      "input_suffix": "ā",
+      "output_suffix": "ina",
+      "sutra": "7.1.12",
+      "sutra_position": "07.01.012",
+      "rule_type": "nitya"
+    },
+    "statement": "ṭā → ina after a-stem (Aṣṭ. 7.1.12)"
+  },
+  {
+    "params": {
+      "condition_stem_class": "a-stem-m",
+      "condition_suffix": "ṅasi",
+      "condition_markers": [],
+      "input_suffix": "as",
+      "output_suffix": "t",
+      "sutra": "7.1.12",
+      "sutra_position": "07.01.012",
+      "rule_type": "nitya"
+    },
+    "statement": "ṅasi → t after a-stem (Aṣṭ. 7.1.12)"
+  },
+  {
+    "params": {
+      "condition_stem_class": "a-stem-m",
+      "condition_suffix": "ṅas",
+      "condition_markers": [],
+      "input_suffix": "as",
+      "output_suffix": "sya",
+      "sutra": "7.1.12",
+      "sutra_position": "07.01.012",
+      "rule_type": "nitya"
+    },
+    "statement": "ṅas → sya after a-stem (Aṣṭ. 7.1.12)"
+  },
+  {
+    "params": {
+      "condition_stem_class": "a-stem-m",
+      "condition_suffix": "ṅe",
+      "condition_markers": [],
+      "input_suffix": "e",
+      "output_suffix": "ya",
+      "sutra": "7.1.13",
+      "sutra_position": "07.01.013",
+      "rule_type": "nitya"
+    },
+    "statement": "ṅe → ya after a-stem (Aṣṭ. 7.1.13)"
+  },
+  {
+    "params": {
+      "condition_stem_class": "a-stem-m",
+      "condition_suffix": "ām",
+      "condition_markers": [],
+      "input_suffix": "ām",
+      "output_suffix": "nām",
+      "sutra": "7.1.54",
+      "sutra_position": "07.01.054",
+      "rule_type": "nitya"
+    },
+    "statement": "ām → nām (nuṬ augment) after short vowel (Aṣṭ. 7.1.54)"
+  },
+  {
+    "params": {
+      "condition_stem_class": "a-stem-m",
+      "condition_suffix": "su",
+      "condition_markers": [],
+      "input_suffix": "s",
+      "output_suffix": "",
+      "sutra": "6.1.69",
+      "sutra_position": "06.01.069",
+      "rule_type": "nitya",
+      "condition_vibhakti": "sambodhana"
+    },
+    "statement": "su → luk (deletion) in sambodhana after short vowel (Aṣṭ. 6.1.69)"
+  },
+  {
+    "params": {
+      "condition_stem_class": "a-stem-m",
+      "condition_suffix": "śas",
+      "condition_markers": [],
+      "input_suffix": "as",
+      "output_suffix": "n",
+      "sutra": "6.1.103",
+      "sutra_position": "06.01.103",
+      "rule_type": "nitya"
+    },
+    "statement": "śas → n for masculine after a-stem (Aṣṭ. 6.1.103)"
+  }
+]

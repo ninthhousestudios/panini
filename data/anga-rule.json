@@ -1,0 +1,114 @@
+[
+  {
+    "params": {
+      "condition_stem_final": "a",
+      "condition_markers": [],
+      "condition_suffix_initial": "y",
+      "condition_vacana": null,
+      "operation": "lengthen",
+      "operation_target": "stem_final",
+      "operation_input": "a",
+      "operation_output": "ā",
+      "sutra": "7.3.101/102",
+      "sutra_position": "07.03.101",
+      "rule_type": "utsarga"
+    },
+    "statement": "a → ā before yaÑ-initial in sUP (Aṣṭ. 7.3.101/102)"
+  },
+  {
+    "params": {
+      "condition_stem_final": "a",
+      "condition_markers": [],
+      "condition_suffix_initial": "n",
+      "condition_vacana": null,
+      "operation": "lengthen",
+      "operation_target": "stem_final",
+      "operation_input": "a",
+      "operation_output": "ā",
+      "sutra": "7.3.101/102",
+      "sutra_position": "07.03.101",
+      "rule_type": "utsarga"
+    },
+    "statement": "a → ā before n-initial in sUP (Aṣṭ. 7.3.101/102)"
+  },
+  {
+    "params": {
+      "condition_stem_final": "a",
+      "condition_markers": [],
+      "condition_suffix_initial": "bh",
+      "condition_vacana": null,
+      "operation": "lengthen",
+      "operation_target": "stem_final",
+      "operation_input": "a",
+      "operation_output": "ā",
+      "sutra": "7.3.101/102",
+      "sutra_position": "07.03.101",
+      "rule_type": "utsarga"
+    },
+    "statement": "a → ā before bh-initial in sUP (Aṣṭ. 7.3.101/102)"
+  },
+  {
+    "params": {
+      "condition_stem_final": "a",
+      "condition_markers": [],
+      "condition_suffix_initial": "t",
+      "condition_vacana": null,
+      "operation": "lengthen",
+      "operation_target": "stem_final",
+      "operation_input": "a",
+      "operation_output": "ā",
+      "sutra": "7.3.101/102",
+      "sutra_position": "07.03.101",
+      "rule_type": "utsarga"
+    },
+    "statement": "a → ā before t-initial in sUP (Aṣṭ. 7.3.101/102)"
+  },
+  {
+    "params": {
+      "condition_stem_final": "a",
+      "condition_markers": [],
+      "condition_suffix_initial": "bh",
+      "condition_vacana": "bahuvacana",
+      "operation": "substitute",
+      "operation_target": "stem_final",
+      "operation_input": "a",
+      "operation_output": "e",
+      "sutra": "7.3.103",
+      "sutra_position": "07.03.103",
+      "rule_type": "apavada"
+    },
+    "statement": "a → e before jhaL-initial in bahuvacana (Aṣṭ. 7.3.103)"
+  },
+  {
+    "params": {
+      "condition_stem_final": "a",
+      "condition_markers": [],
+      "condition_suffix_initial": "s",
+      "condition_vacana": "bahuvacana",
+      "operation": "substitute",
+      "operation_target": "stem_final",
+      "operation_input": "a",
+      "operation_output": "e",
+      "sutra": "7.3.103",
+      "sutra_position": "07.03.103",
+      "rule_type": "apavada"
+    },
+    "statement": "a → e before s-initial (su) in bahuvacana (Aṣṭ. 7.3.103)"
+  },
+  {
+    "params": {
+      "condition_stem_final": "a",
+      "condition_markers": [],
+      "condition_suffix_initial": "o",
+      "condition_vacana": null,
+      "operation": "substitute",
+      "operation_target": "stem_final",
+      "operation_input": "a",
+      "operation_output": "e",
+      "sutra": "7.3.104",
+      "sutra_position": "07.03.104",
+      "rule_type": "nitya"
+    },
+    "statement": "a → e before os (gen/loc dual) (Aṣṭ. 7.3.104)"
+  }
+]

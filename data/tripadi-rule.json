@@ -1,0 +1,44 @@
+[
+  {
+    "params": {
+      "context": "word_final",
+      "condition_preceding": null,
+      "condition_following": null,
+      "input": "s",
+      "output": "r",
+      "position": "word_final",
+      "sutra": "8.2.66",
+      "sutra_position": "08.02.066",
+      "rule_type": "nitya"
+    },
+    "statement": "s → ru (= r) word-finally (sasajuṣo ruḥ, Aṣṭ. 8.2.66)"
+  },
+  {
+    "params": {
+      "context": "word_final",
+      "condition_preceding": null,
+      "condition_following": null,
+      "input": "r",
+      "output": "ḥ",
+      "position": "word_final",
+      "sutra": "8.3.15",
+      "sutra_position": "08.03.015",
+      "rule_type": "nitya"
+    },
+    "statement": "r → ḥ at avasāna (kharavasānayorvisarjanīyaḥ, Aṣṭ. 8.3.15)"
+  },
+  {
+    "params": {
+      "context": "after_iuk",
+      "condition_preceding": "iuk",
+      "condition_following": null,
+      "input": "s",
+      "output": "ṣ",
+      "position": "internal",
+      "sutra": "8.3.59",
+      "sutra_position": "08.03.059",
+      "rule_type": "nitya"
+    },
+    "statement": "s → ṣ after i/u/ṛ/e/o in pratyaya (Aṣṭ. 8.3.59)"
+  }
+]

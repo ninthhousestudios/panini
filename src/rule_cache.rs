@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use serde::Deserialize;
+
 use crate::vidya_client::RawClaim;
 
 pub struct CachedRule {
@@ -11,11 +13,42 @@ pub struct RuleCache {
     rules: HashMap<String, Vec<CachedRule>>,
 }
 
+const EMBEDDED_TEMPLATES: &[(&str, &str)] = &[
+    ("sandhi_rule", include_str!("../data/sandhi-rule.json")),
+    ("sup_suffix", include_str!("../data/sup-suffix.json")),
+    ("pratyaya_rule", include_str!("../data/pratyaya-rule.json")),
+    ("anga_rule", include_str!("../data/anga-rule.json")),
+    ("tripadi_rule", include_str!("../data/tripadi-rule.json")),
+];
+
+#[derive(Deserialize)]
+struct EmbeddedRule {
+    params: serde_json::Value,
+    statement: String,
+}
+
 impl RuleCache {
     pub fn new() -> Self {
         Self {
             rules: HashMap::new(),
         }
+    }
+
+    pub fn load_embedded() -> Self {
+        let mut cache = Self::new();
+        for &(slug, json) in EMBEDDED_TEMPLATES {
+            let embedded: Vec<EmbeddedRule> =
+                serde_json::from_str(json).expect("embedded rule JSON is valid");
+            let rules = embedded
+                .into_iter()
+                .map(|e| CachedRule {
+                    params: e.params,
+                    statement: e.statement,
+                })
+                .collect();
+            cache.rules.insert(slug.to_string(), rules);
+        }
+        cache
     }
 
     pub fn load_template(&mut self, template_slug: String, raw_claims: Vec<RawClaim>) {

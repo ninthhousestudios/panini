@@ -2,7 +2,7 @@ use std::env;
 
 #[derive(Debug, Clone)]
 pub struct Config {
-    pub vidya_url: String,
+    pub vidya_url: Option<String>,
     pub vidya_auth_token: Option<String>,
     pub log_level: String,
     pub http_host: String,
@@ -12,7 +12,7 @@ pub struct Config {
 impl Config {
     pub fn from_env() -> Self {
         Self {
-            vidya_url: env_or("VIDYA_URL", "http://127.0.0.1:3300/mcp"),
+            vidya_url: env::var("VIDYA_URL").ok(),
             vidya_auth_token: env::var("VIDYA_AUTH_TOKEN").ok(),
             log_level: env_or("PANINI_LOG_LEVEL", "info"),
             http_host: env_or("PANINI_HTTP_HOST", "127.0.0.1"),

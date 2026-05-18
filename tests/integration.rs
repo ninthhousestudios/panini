@@ -1,32 +1,16 @@
-use panini::config::Config;
 use panini::engine::declension::{DeclensionInput, analyze_declension, derive_declension};
 use panini::engine::sandhi::{SandhiInput, analyze_sandhi, derive_sandhi};
 use panini::engine::TraceStep;
 use panini::rule_cache::RuleCache;
 use panini::vidya_client::VidyaClient;
 
-async fn build_cache() -> RuleCache {
-    dotenvy::dotenv().ok();
-    let cfg = Config::from_env();
-    let vidya = VidyaClient::connect(&cfg.vidya_url, cfg.vidya_auth_token.as_deref())
-        .await
-        .expect("failed to connect to vidya — is it running?");
-
-    let mut cache = RuleCache::new();
-    for template in ["sandhi_rule", "sup_suffix", "pratyaya_rule", "anga_rule", "tripadi_rule"] {
-        let claims = vidya
-            .fetch_claims("vyakarana", template)
-            .await
-            .unwrap_or_else(|e| panic!("failed to fetch {template}: {e}"));
-        cache.load_template(template.into(), claims);
-    }
-    assert!(cache.rule_count("sandhi_rule") > 0, "no sandhi rules loaded from vidya");
-    cache
+fn build_cache() -> RuleCache {
+    RuleCache::load_embedded()
 }
 
 #[tokio::test]
 async fn derive_vowel_sandhi_guna() {
-    let cache = build_cache().await;
+    let cache = build_cache();
     let rules = cache.get_rules("sandhi_rule");
     let result = derive_sandhi(
         rules,
@@ -45,7 +29,7 @@ async fn derive_vowel_sandhi_guna() {
 
 #[tokio::test]
 async fn derive_vowel_sandhi_all_ten_cases() {
-    let cache = build_cache().await;
+    let cache = build_cache();
     let rules = cache.get_rules("sandhi_rule");
 
     let cases = vec![
@@ -79,7 +63,7 @@ async fn derive_vowel_sandhi_all_ten_cases() {
 
 #[tokio::test]
 async fn derive_visarga_sandhi_before_a() {
-    let cache = build_cache().await;
+    let cache = build_cache();
     let rules = cache.get_rules("sandhi_rule");
     let result = derive_sandhi(
         rules,
@@ -95,7 +79,7 @@ async fn derive_visarga_sandhi_before_a() {
 
 #[tokio::test]
 async fn derive_visarga_sandhi_before_voiced_consonant() {
-    let cache = build_cache().await;
+    let cache = build_cache();
     let rules = cache.get_rules("sandhi_rule");
     let result = derive_sandhi(
         rules,
@@ -111,7 +95,7 @@ async fn derive_visarga_sandhi_before_voiced_consonant() {
 
 #[tokio::test]
 async fn analyze_vowel_sandhi_round_trip() {
-    let cache = build_cache().await;
+    let cache = build_cache();
     let rules = cache.get_rules("sandhi_rule");
 
     let cases = [
@@ -135,7 +119,7 @@ async fn analyze_vowel_sandhi_round_trip() {
 
 #[tokio::test]
 async fn analyze_visarga_round_trip() {
-    let cache = build_cache().await;
+    let cache = build_cache();
     let rules = cache.get_rules("sandhi_rule");
 
     let derived = derive_sandhi(
@@ -150,7 +134,7 @@ async fn analyze_visarga_round_trip() {
 
 #[tokio::test]
 async fn derive_consonant_sandhi_palatalization() {
-    let cache = build_cache().await;
+    let cache = build_cache();
     let rules = cache.get_rules("sandhi_rule");
     let cases = [
         ("tat", "ca", "tacca", "8.4.40"),
@@ -173,7 +157,7 @@ async fn derive_consonant_sandhi_palatalization() {
 
 #[tokio::test]
 async fn derive_consonant_sandhi_voicing() {
-    let cache = build_cache().await;
+    let cache = build_cache();
     let rules = cache.get_rules("sandhi_rule");
     let cases = [
         ("tat", "gacchati", "tadgacchati", "8.4.53"),
@@ -199,7 +183,7 @@ async fn derive_consonant_sandhi_voicing() {
 
 #[tokio::test]
 async fn derive_consonant_sandhi_anusvara() {
-    let cache = build_cache().await;
+    let cache = build_cache();
     let rules = cache.get_rules("sandhi_rule");
     let result = derive_sandhi(
         rules,
@@ -211,7 +195,7 @@ async fn derive_consonant_sandhi_anusvara() {
 
 #[tokio::test]
 async fn derive_no_false_sandhi() {
-    let cache = build_cache().await;
+    let cache = build_cache();
     let rules = cache.get_rules("sandhi_rule");
     let result = derive_sandhi(
         rules,
@@ -223,7 +207,7 @@ async fn derive_no_false_sandhi() {
 
 #[tokio::test]
 async fn analyze_consonant_sandhi_round_trip() {
-    let cache = build_cache().await;
+    let cache = build_cache();
     let rules = cache.get_rules("sandhi_rule");
     let cases = [
         ("tat", "ca"),
@@ -253,7 +237,7 @@ async fn analyze_consonant_sandhi_round_trip() {
 
 #[tokio::test]
 async fn analyze_consonant_ranking() {
-    let cache = build_cache().await;
+    let cache = build_cache();
     let rules = cache.get_rules("sandhi_rule");
     let analyzed = analyze_sandhi(rules, "tacca").unwrap();
     let correct = analyzed.candidates.iter().find(|c| c.first == "tat" && c.second == "ca");
@@ -266,7 +250,7 @@ async fn analyze_consonant_ranking() {
 
 #[tokio::test]
 async fn health_returns_rule_counts() {
-    let cache = build_cache().await;
+    let cache = build_cache();
     assert!(cache.template_count() >= 1);
     assert!(cache.total_rules() > 0);
     assert!(cache.rule_count("sandhi_rule") > 0);
@@ -280,7 +264,7 @@ async fn fails_if_vidya_unreachable() {
 
 #[tokio::test]
 async fn declension_cache_loads_all_templates() {
-    let cache = build_cache().await;
+    let cache = build_cache();
     assert!(cache.rule_count("sup_suffix") > 0, "no sup_suffix rules");
     assert!(cache.rule_count("pratyaya_rule") > 0, "no pratyaya rules");
     assert!(cache.rule_count("anga_rule") > 0, "no anga rules");
@@ -289,7 +273,7 @@ async fn declension_cache_loads_all_templates() {
 
 #[tokio::test]
 async fn derive_deva_paradigm() {
-    let cache = build_cache().await;
+    let cache = build_cache();
     let expected = vec![
         ("1", "sg", "devaḥ"),
         ("1", "du", "devau"),
@@ -379,7 +363,7 @@ fn generate_paradigm(
 
 #[tokio::test]
 async fn paradigm_deva_complete() {
-    let cache = build_cache().await;
+    let cache = build_cache();
     let cells = generate_paradigm(&cache, "deva", "a-stem-m");
 
     assert_eq!(cells.len(), 24, "paradigm should have 24 cells");
@@ -436,7 +420,7 @@ async fn paradigm_deva_complete() {
 
 #[tokio::test]
 async fn paradigm_cell_errors_dont_fail_whole_request() {
-    let cache = build_cache().await;
+    let cache = build_cache();
     let cells = generate_paradigm(&cache, "deva", "nonexistent-stem-type");
     assert_eq!(cells.len(), 24, "should still produce 24 cells");
     for (case, number, result) in &cells {
@@ -449,7 +433,7 @@ async fn paradigm_cell_errors_dont_fail_whole_request() {
 
 #[tokio::test]
 async fn analyze_declension_round_trip() {
-    let cache = build_cache().await;
+    let cache = build_cache();
     let spot_checks = [
         ("1", "sg", "devaḥ"),
         ("3", "sg", "devena"),
@@ -498,7 +482,7 @@ async fn analyze_declension_round_trip() {
 
 #[tokio::test]
 async fn analyze_declension_ambiguous() {
-    let cache = build_cache().await;
+    let cache = build_cache();
     let analyzed = analyze_declension(
         cache.get_rules("sup_suffix"),
         cache.get_rules("pratyaya_rule"),

@@ -31,7 +31,10 @@ struct Cli {
 
 #[derive(clap::Subcommand)]
 enum Command {
-    Gui,
+    Gui {
+        #[arg(long)]
+        vidya_url: Option<String>,
+    },
     Serve {
         #[arg(long)]
         stdio: bool,
@@ -39,6 +42,8 @@ enum Command {
         auth_token_file: Option<PathBuf>,
         #[arg(long)]
         http_port: Option<u16>,
+        #[arg(long)]
+        vidya_url: Option<String>,
     },
 }
 
@@ -57,10 +62,10 @@ async fn main() -> anyhow::Result<()> {
 
     let cli = Cli::parse();
 
-    match cli.command.unwrap_or(Command::Gui) {
-        Command::Gui => {
-            eprintln!("Loading rules from vidya…");
-            let cache = build_cache(&cfg).await?;
+    match cli.command.unwrap_or(Command::Gui { vidya_url: None }) {
+        Command::Gui { vidya_url } => {
+            let vidya_url = vidya_url.or(cfg.vidya_url.clone());
+            let cache = build_cache(&cfg, vidya_url.as_deref()).await?;
             eprintln!("Launching GUI…");
             panini::gui::run(cache).map_err(|e| anyhow::anyhow!("{e}"))?;
             Ok(())
@@ -69,9 +74,11 @@ async fn main() -> anyhow::Result<()> {
             stdio,
             auth_token_file,
             http_port,
+            vidya_url,
         } => {
+            let vidya_url = vidya_url.or(cfg.vidya_url.clone());
             if stdio {
-                let cache = build_cache(&cfg).await?;
+                let cache = build_cache(&cfg, vidya_url.as_deref()).await?;
                 serve_stdio(cache).await
             } else {
                 let port = http_port.unwrap_or(cfg.http_port);
@@ -84,16 +91,50 @@ async fn main() -> anyhow::Result<()> {
                     }
                     Err(e) => return Err(e.into()),
                 };
-                let cache = build_cache(&cfg).await?;
+                let cache = build_cache(&cfg, vidya_url.as_deref()).await?;
                 serve_http(auth_token_file, cache, listener).await
             }
         }
     }
 }
 
-async fn build_cache(cfg: &Config) -> anyhow::Result<Arc<RuleCache>> {
-    tracing::info!(url = %cfg.vidya_url, "connecting to vidya");
-    let vidya = VidyaClient::connect(&cfg.vidya_url, cfg.vidya_auth_token.as_deref())
+async fn build_cache(cfg: &Config, vidya_url: Option<&str>) -> anyhow::Result<Arc<RuleCache>> {
+    let cache = match vidya_url {
+        Some(url) => build_cache_from_vidya(cfg, url).await?,
+        None => {
+            eprintln!("Loading embedded rules…");
+            tracing::info!("loading embedded rules");
+            let cache = RuleCache::load_embedded();
+            tracing::info!(
+                templates = cache.template_count(),
+                rules = cache.total_rules(),
+                "loaded embedded rules"
+            );
+            cache
+        }
+    };
+
+    let sandhi_count = cache.rule_count("sandhi_rule");
+    let parse_errors = panini::engine::sandhi::validate_rules(cache.get_rules("sandhi_rule"));
+    if !parse_errors.is_empty() {
+        for err in &parse_errors {
+            tracing::error!(%err, "unparseable sandhi rule");
+        }
+        anyhow::bail!(
+            "{} of {} sandhi rules failed to parse",
+            parse_errors.len(),
+            sandhi_count
+        );
+    }
+    tracing::info!(count = sandhi_count, "sandhi rules validated");
+
+    Ok(Arc::new(cache))
+}
+
+async fn build_cache_from_vidya(cfg: &Config, url: &str) -> anyhow::Result<RuleCache> {
+    eprintln!("Loading rules from vidya…");
+    tracing::info!(%url, "connecting to vidya");
+    let vidya = VidyaClient::connect(url, cfg.vidya_auth_token.as_deref())
         .await
         .context("failed to connect to vidya — is it running?")?;
 
@@ -102,25 +143,10 @@ async fn build_cache(cfg: &Config) -> anyhow::Result<Arc<RuleCache>> {
         .fetch_claims("vyakarana", "sandhi_rule")
         .await
         .context("failed to fetch sandhi rules from vidya")?;
-    let count = sandhi_claims.len();
-    if count == 0 {
+    if sandhi_claims.is_empty() {
         anyhow::bail!("zero sandhi rules loaded from vidya — check seed data");
     }
     cache.load_template("sandhi_rule".into(), sandhi_claims);
-
-    let parse_errors =
-        panini::engine::sandhi::validate_rules(cache.get_rules("sandhi_rule"));
-    if !parse_errors.is_empty() {
-        for err in &parse_errors {
-            tracing::error!(%err, "unparseable sandhi rule");
-        }
-        anyhow::bail!(
-            "{} of {} sandhi rules failed to parse — check vidya seed data",
-            parse_errors.len(),
-            count
-        );
-    }
-    tracing::info!(count, "cached sandhi rules (all validated)");
 
     for template in ["sup_suffix", "pratyaya_rule", "anga_rule", "tripadi_rule"] {
         let claims = vidya
@@ -132,10 +158,10 @@ async fn build_cache(cfg: &Config) -> anyhow::Result<Arc<RuleCache>> {
         }
         let count = claims.len();
         cache.load_template(template.into(), claims);
-        tracing::info!(template, count, "cached rules");
+        tracing::info!(template, count, "cached rules from vidya");
     }
 
-    Ok(Arc::new(cache))
+    Ok(cache)
 }
 
 async fn serve_stdio(cache: Arc<RuleCache>) -> anyhow::Result<()> {
