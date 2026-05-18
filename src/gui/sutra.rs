@@ -1,8 +1,8 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use iced::widget::{column, scrollable, text, text_input, Column};
-use iced::{Element, Task};
+use iced::widget::{column, container, row, scrollable, text, text_input, Column, Row};
+use iced::{Element, Fill, Task};
 
 use crate::api::SutraEntry;
 use crate::rule_cache::RuleCache;
@@ -24,10 +24,7 @@ pub enum Message {
 
 pub fn load(cache: &Arc<RuleCache>) -> Task<Message> {
     let cache = cache.clone();
-    Task::perform(
-        async move { collect_sutras(&cache) },
-        Message::Loaded,
-    )
+    Task::perform(async move { collect_sutras(&cache) }, Message::Loaded)
 }
 
 fn collect_sutras(cache: &RuleCache) -> Vec<SutraEntry> {
@@ -76,11 +73,15 @@ pub fn update(state: &mut State, msg: Message) -> Task<Message> {
 
 pub fn view(state: &State) -> Element<'_, Message> {
     if !state.loaded {
-        return text("Loading sūtras…").size(16).into();
+        return text("Loading sūtras…")
+            .size(14)
+            .color(theme::TEXT_SECONDARY)
+            .into();
     }
 
-    let filter_input = text_input("Search sūtras…", &state.filter)
+    let filter_input = text_input("Search sūtras by number or text…", &state.filter)
         .on_input(Message::FilterChanged)
+        .style(theme::input_style)
         .width(400);
 
     let q = state.filter.to_lowercase();
@@ -95,22 +96,52 @@ pub fn view(state: &State) -> Element<'_, Message> {
         })
         .collect();
 
-    let count = text(format!("{} sūtras", filtered.len())).size(14);
+    let count = text(format!(
+        "{} sūtra{}",
+        filtered.len(),
+        if filtered.len() != 1 { "s" } else { "" }
+    ))
+    .size(14)
+    .color(theme::TEXT_SECONDARY);
 
-    let mut list = Column::new().spacing(4);
+    let mut list = Column::new().spacing(6);
     for entry in &filtered {
-        let tags = entry.templates.join(", ");
-        let card = column![
-            text(format!("{}  —  {}", entry.sutra, entry.statement))
-                .size(15)
-                .font(theme::latin()),
-            text(tags).size(12),
-        ]
-        .spacing(2);
+        let mut tags_row = Row::new().spacing(4);
+        for t in &entry.templates {
+            tags_row = tags_row.push(
+                container(
+                    text(t.clone())
+                        .size(11)
+                        .font(theme::latin())
+                        .color(theme::ACCENT),
+                )
+                .style(theme::tag_style)
+                .padding([2, 6]),
+            );
+        }
+
+        let card = container(
+            row![
+                text(entry.sutra.clone())
+                    .size(14)
+                    .font(theme::latin())
+                    .color(theme::ACCENT)
+                    .width(80),
+                text(entry.statement.clone())
+                    .size(14)
+                    .font(theme::latin())
+                    .width(Fill),
+                tags_row,
+            ]
+            .spacing(12)
+            .align_y(iced::Center),
+        )
+        .style(theme::card)
+        .padding([10, 14]);
         list = list.push(card);
     }
 
-    column![filter_input, count, scrollable(list).height(iced::Fill)]
-        .spacing(8)
+    column![filter_input, count, scrollable(list).height(Fill)]
+        .spacing(10)
         .into()
 }
