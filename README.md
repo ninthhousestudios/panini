@@ -1,6 +1,6 @@
 # Panini
 
-Sanskrit grammar engine. Fetches rules from [vidya](../manas/vidya) as structured data, caches them in memory, and derives inflected forms with step-by-step sutra citations.
+Sanskrit grammar engine with embedded rule data. Derives inflected forms with step-by-step sutra citations, splits sandhi, generates paradigm tables — all standalone, no external services required.
 
 ## What it does
 
@@ -18,16 +18,24 @@ Sanskrit grammar engine. Fetches rules from [vidya](../manas/vidya) as structure
 ## Prerequisites
 
 - Rust (edition 2024)
-- A running [vidya](../manas/vidya) instance with Sanskrit grammar rules seeded
 
 ## Running
 
+### Desktop GUI (default)
+
 ```sh
-# Start vidya first, then:
+cargo run
+```
+
+Launches the Iced desktop GUI with IAST-to-Devanagari transliteration, paradigm tables, sandhi tools, and sutra browser.
+
+### HTTP server + web UI
+
+```sh
 cargo run -- serve
 ```
 
-This starts the HTTP server on `127.0.0.1:4300` (default). Open http://127.0.0.1:4300 in a browser for the web UI.
+Starts the HTTP server on `127.0.0.1:4300` (default). Open http://127.0.0.1:4300 in a browser for the web UI.
 
 The web UI has four tabs:
 - **Paradigms** — enter a stem and stem type, get the full declension grid in Devanagari and IAST
@@ -35,29 +43,50 @@ The web UI has four tabs:
 - **Sutras** — browse all loaded sutras with search
 - **Verification** — automated consistency report across all rule templates
 
+### MCP server
+
+```sh
+cargo run -- serve --stdio
+```
+
+Runs as an MCP server over stdin/stdout for agent use.
+
 ### Options
 
 ```
-panini serve [OPTIONS]
+panini [gui|serve] [OPTIONS]
 
---stdio         Run as MCP server over stdin/stdout (for agent use)
---http-port N   Override the HTTP port (default: 4300, env: PANINI_HTTP_PORT)
---auth-token-file PATH   Enable bearer token auth from a file
+--vidya-url URL  Fetch rules from a vidya MCP endpoint instead of using embedded data
+--stdio          (serve) Run as MCP server over stdin/stdout
+--http-port N    (serve) Override the HTTP port (default: 4300, env: PANINI_HTTP_PORT)
+--auth-token-file PATH  (serve) Enable bearer token auth from a file
 ```
 
 ### Environment
 
 | Variable | Default | Description |
 |---|---|---|
-| `VIDYA_URL` | `http://127.0.0.1:3300/mcp` | Vidya MCP endpoint |
-| `VIDYA_AUTH_TOKEN` | (none) | Bearer token for vidya |
+| `VIDYA_URL` | (none) | If set, fetch rules from this vidya MCP endpoint instead of embedded data |
+| `VIDYA_AUTH_TOKEN` | (none) | Bearer token for vidya (only used with `VIDYA_URL`) |
 | `PANINI_LOG_LEVEL` | `info` | Tracing filter (e.g., `debug`, `panini=trace`) |
 | `PANINI_HTTP_HOST` | `127.0.0.1` | Bind address |
 | `PANINI_HTTP_PORT` | `4300` | HTTP port |
 
-## API
+## Rule data
 
-All endpoints except health require vidya to be running with seeded rules.
+Grammar rules live in `data/` as JSON files, one per template:
+
+| File | Rules | Content |
+|---|---|---|
+| `sandhi-rule.json` | 167 | Vowel, consonant, and visarga sandhi |
+| `sup-suffix.json` | 24 | sUP pratyaya table (8 cases x 3 numbers) |
+| `pratyaya-rule.json` | 8 | Suffix modifications by stem class |
+| `anga-rule.json` | 7 | Stem modifications before suffixes |
+| `tripadi-rule.json` | 3 | Late-pass rules (Ashtadhyayi 8.2-8.4) |
+
+These are compiled into the binary via `include_str!`. To add a new rule template (e.g., verb conjugations): add the JSON file to `data/`, add one line to `EMBEDDED_TEMPLATES` in `src/rule_cache.rs`.
+
+## API
 
 | Method | Path | Description |
 |---|---|---|
@@ -71,16 +100,15 @@ All endpoints except health require vidya to be running with seeded rules.
 ## Testing
 
 ```sh
-cargo test               # all tests (unit + property-based)
-cargo test --lib         # unit tests only (no vidya needed)
-cargo test --test properties  # property-based tests only (no vidya needed)
+cargo test                       # all 96 tests
+cargo test --lib                 # unit tests only
+cargo test --test integration    # integration tests (uses embedded rules)
+cargo test --test properties     # property-based tests
 ```
-
-Integration tests in `tests/integration.rs` require a running vidya instance.
 
 ## Architecture
 
-Vidya stores the grammar rules as structured JSON claims. Panini fetches them at startup, caches them, and does all reasoning. Adding new rules means seeding new claims in vidya; no Rust code changes.
+Grammar rules are embedded as JSON and loaded at startup into a `RuleCache`. The engine does all reasoning locally. Optionally, rules can be fetched from a [vidya](../manas/vidya) MCP endpoint via `--vidya-url` for development or when vidya hosts commentary-tradition data.
 
 The derivation engine is a five-layer pipeline (for declension):
 1. **Suffix selection** (sup_suffix) — look up the pratyaya for stem class + case + number
