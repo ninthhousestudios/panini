@@ -1,4 +1,4 @@
-const VOWEL_PHONEMES: &[&str] = &[
+pub const VOWEL_PHONEMES: &[&str] = &[
     "ai", "au", "ā", "ī", "ū", "ṝ", "ṛ", "ḷ", "a", "i", "u", "e", "o",
 ];
 

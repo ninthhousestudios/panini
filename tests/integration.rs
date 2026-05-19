@@ -650,3 +650,31 @@ async fn conjugation_cache_loads_templates() {
         "no verb_anga rules"
     );
 }
+
+#[tokio::test]
+async fn conjugation_medial_guna_skips_final_u() {
+    let cache = build_cache();
+    // "śru" — u is final, not medial. The medial guṇa rule should not fire.
+    let form = derive_conj(&cache, "śru", "prathama", "ekavacana");
+    assert_ne!(form, "śroati", "medial guṇa should not apply to final u");
+}
+
+#[tokio::test]
+async fn conjugation_vikarana_rejects_ardhadhatuka() {
+    let cache = build_cache();
+    let result = derive_conjugation(
+        cache.get_rules("tin_suffix"),
+        cache.get_rules("vikarana_rule"),
+        cache.get_rules("verb_anga_rule"),
+        cache.get_rules("tripadi_rule"),
+        ConjugationInput {
+            dhatu: "bhū".into(),
+            gana: "1".into(),
+            lakara: "liṭ".into(),
+            pada: "parasmaipada".into(),
+            purusha: "prathama".into(),
+            vacana: "ekavacana".into(),
+        },
+    );
+    assert!(result.is_err(), "liṭ should not find sārvadhātuka vikaraṇa");
+}

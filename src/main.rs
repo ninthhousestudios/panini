@@ -159,6 +159,8 @@ async fn build_cache_from_vidya(cfg: &Config, url: &str) -> anyhow::Result<RuleC
         tracing::info!(template, count, "cached rules from vidya");
     }
 
+    // Vidya path kept for future use but not expected to be the regular data source.
+    // Missing templates just warn — conjugation degrades gracefully.
     for template in ["tin_suffix", "vikarana_rule", "verb_anga_rule"] {
         let claims = vidya
             .fetch_claims("vyakarana", template)

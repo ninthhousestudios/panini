@@ -1,6 +1,7 @@
 use serde::Deserialize;
 
 use super::declension::TripadiRule;
+use super::phoneme::{VOWEL_PHONEMES, tokenize};
 use super::{DeriveResult, TraceStep, rule_type_priority};
 use crate::error::{PaniniError, Result};
 use crate::rule_cache::CachedRule;
@@ -32,7 +33,17 @@ struct VikaranaRule {
     gana: String,
     suffix: String,
     #[serde(default)]
+    lakara_type: Option<String>,
+    #[serde(default)]
     sutra: String,
+}
+
+fn lakara_to_type(lakara: &str) -> &'static str {
+    match lakara {
+        "laṭ" | "loṭ" | "laṅ" | "vidhiliṅ" => "sārvadhātuka",
+        "liṭ" | "luṭ" | "lṛṭ" | "āśīrliṅ" | "luṅ" | "lṛṅ" | "leṭ" => "ārdhadhātuka",
+        _ => "sārvadhātuka",
+    }
 }
 
 #[derive(Deserialize)]
@@ -73,12 +84,26 @@ fn is_yan_initial(suffix: &str) -> bool {
     suffix.chars().next().map_or(false, |c| YAN.contains(&c))
 }
 
-fn replace_medial_vowel(dhatu: &str, from: &str, to: &str) -> String {
-    if let Some(pos) = dhatu.find(from) {
-        format!("{}{}{}", &dhatu[..pos], to, &dhatu[pos + from.len()..])
-    } else {
-        dhatu.to_string()
+fn is_vowel(phoneme: &str) -> bool {
+    VOWEL_PHONEMES.contains(&phoneme)
+}
+
+fn replace_medial_vowel(dhatu: &str, from: &str, to: &str) -> Option<String> {
+    let tokens = tokenize(dhatu);
+    if tokens.len() < 3 {
+        return None;
     }
+    // Medial = not first, not last phoneme
+    for i in 1..tokens.len() - 1 {
+        if is_vowel(tokens[i]) && tokens[i] == from {
+            let mut out = String::new();
+            for (j, tok) in tokens.iter().enumerate() {
+                if j == i { out.push_str(to); } else { out.push_str(tok); }
+            }
+            return Some(out);
+        }
+    }
+    None
 }
 
 pub fn derive_conjugation(
@@ -130,18 +155,26 @@ pub fn derive_conjugation(
     });
 
     // --- Layer 2: Vikaraṇa insertion ---
+    let input_lakara_type = lakara_to_type(&input.lakara);
     let vik = vikarana_rules
         .iter()
         .find_map(|rule| {
             let p: VikaranaRule = serde_json::from_value(rule.params.clone()).ok()?;
-            if p.gana == input.gana {
-                Some((p, rule))
-            } else {
-                None
+            if p.gana != input.gana {
+                return None;
             }
+            if let Some(ref lt) = p.lakara_type {
+                if lt != input_lakara_type {
+                    return None;
+                }
+            }
+            Some((p, rule))
         })
         .ok_or_else(|| {
-            PaniniError::RuleParse(format!("no vikarana_rule for gaṇa={}", input.gana))
+            PaniniError::RuleParse(format!(
+                "no vikarana_rule for gaṇa={}, lakāra_type={}",
+                input.gana, input_lakara_type
+            ))
         })?;
 
     let (vik_params, vik_rule) = vik;
@@ -214,28 +247,24 @@ pub fn derive_conjugation(
                 if let (Some(_cond), Some(inp), Some(out)) =
                     (&params.condition_dhatu_vowel, &params.input, &params.output)
                 {
-                    if current_dhatu.contains(inp.as_str()) {
+                    if let Some(replaced) = replace_medial_vowel(&current_dhatu, inp, out) {
                         let old = current_dhatu.clone();
-                        current_dhatu = replace_medial_vowel(&current_dhatu, inp, out);
-                        if current_dhatu != old {
-                            step_num += 1;
-                            trace.push(TraceStep {
-                                step: step_num,
-                                rule: rule.statement.clone(),
-                                rule_ref: sutra_ref(&params.sutra),
-                                input_state: format!(
-                                    "{} + {} + {}",
-                                    old, vikarana, current_tin
-                                ),
-                                output_state: format!(
-                                    "{} + {} + {}",
-                                    current_dhatu, vikarana, current_tin
-                                ),
-                            });
-                            true
-                        } else {
-                            false
-                        }
+                        current_dhatu = replaced;
+                        step_num += 1;
+                        trace.push(TraceStep {
+                            step: step_num,
+                            rule: rule.statement.clone(),
+                            rule_ref: sutra_ref(&params.sutra),
+                            input_state: format!(
+                                "{} + {} + {}",
+                                old, vikarana, current_tin
+                            ),
+                            output_state: format!(
+                                "{} + {} + {}",
+                                current_dhatu, vikarana, current_tin
+                            ),
+                        });
+                        true
                     } else {
                         false
                     }
@@ -574,5 +603,112 @@ mod tests {
             "paṭh",
         );
         assert_eq!(result.output["form"], "paṭhati");
+    }
+
+    fn medial_guna_anga() -> Vec<CachedRule> {
+        vec![make_rule(
+            json!({
+                "stage": "pre_vikarana", "rule_type": "guna",
+                "condition_dhatu_vowel": "u", "position": "dhatu_medial",
+                "input": "u", "output": "o",
+                "sutra": "7.3.84", "sutra_position": "07.03.084"
+            }),
+            "u → o (medial guṇa)",
+        )]
+    }
+
+    #[test]
+    fn medial_guna_skips_final_vowel() {
+        // "śru" has u as final, not medial — should NOT get medial guṇa
+        let result = derive(
+            &fixture_tin(),
+            &fixture_vikarana(),
+            &medial_guna_anga(),
+            &fixture_tripadi(),
+            "śru",
+        );
+        assert_eq!(result.output["form"], "śruati",
+            "final u should not be rewritten by dhatu_medial rule");
+    }
+
+    #[test]
+    fn medial_guna_skips_initial_vowel() {
+        // "ukṣ" has u as initial — should NOT get medial guṇa
+        let result = derive(
+            &fixture_tin(),
+            &fixture_vikarana(),
+            &medial_guna_anga(),
+            &fixture_tripadi(),
+            "ukṣ",
+        );
+        assert_eq!(result.output["form"], "ukṣati",
+            "initial u should not be rewritten by dhatu_medial rule");
+    }
+
+    #[test]
+    fn medial_guna_multi_vowel_targets_medial() {
+        // "krudh" has u between consonants — should get medial guṇa
+        let result = derive(
+            &fixture_tin(),
+            &fixture_vikarana(),
+            &medial_guna_anga(),
+            &fixture_tripadi(),
+            "krudh",
+        );
+        assert_eq!(result.output["form"], "krodhati");
+    }
+
+    #[test]
+    fn vikarana_matches_lakara_type() {
+        let vik = vec![make_rule(
+            json!({
+                "gana": "1", "vikarana_name": "śap", "suffix": "a",
+                "lakara_type": "sārvadhātuka",
+                "sutra": "3.1.68", "sutra_position": "03.01.068"
+            }),
+            "class 1: śap → a",
+        )];
+        let result = derive_conjugation(
+            &fixture_tin(),
+            &vik,
+            &fixture_verb_anga(),
+            &fixture_tripadi(),
+            ConjugationInput {
+                dhatu: "bhū".into(),
+                gana: "1".into(),
+                lakara: "laṭ".into(),
+                pada: "parasmaipada".into(),
+                purusha: "prathama".into(),
+                vacana: "ekavacana".into(),
+            },
+        );
+        assert!(result.is_ok(), "laṭ (sārvadhātuka) should match");
+    }
+
+    #[test]
+    fn vikarana_rejects_wrong_lakara_type() {
+        let vik = vec![make_rule(
+            json!({
+                "gana": "1", "vikarana_name": "śap", "suffix": "a",
+                "lakara_type": "sārvadhātuka",
+                "sutra": "3.1.68", "sutra_position": "03.01.068"
+            }),
+            "class 1: śap → a",
+        )];
+        let result = derive_conjugation(
+            &fixture_tin(),
+            &vik,
+            &fixture_verb_anga(),
+            &fixture_tripadi(),
+            ConjugationInput {
+                dhatu: "bhū".into(),
+                gana: "1".into(),
+                lakara: "liṭ".into(),
+                pada: "parasmaipada".into(),
+                purusha: "prathama".into(),
+                vacana: "ekavacana".into(),
+            },
+        );
+        assert!(result.is_err(), "liṭ (ārdhadhātuka) should not match sārvadhātuka vikaraṇa");
     }
 }
