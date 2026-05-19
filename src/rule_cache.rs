@@ -19,6 +19,9 @@ const EMBEDDED_TEMPLATES: &[(&str, &str)] = &[
     ("pratyaya_rule", include_str!("../data/pratyaya-rule.json")),
     ("anga_rule", include_str!("../data/anga-rule.json")),
     ("tripadi_rule", include_str!("../data/tripadi-rule.json")),
+    ("tin_suffix", include_str!("../data/tin-suffix.json")),
+    ("vikarana_rule", include_str!("../data/vikarana-rule.json")),
+    ("verb_anga_rule", include_str!("../data/verb-anga-rule.json")),
 ];
 
 #[derive(Deserialize)]

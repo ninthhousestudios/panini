@@ -159,6 +159,19 @@ async fn build_cache_from_vidya(cfg: &Config, url: &str) -> anyhow::Result<RuleC
         tracing::info!(template, count, "cached rules from vidya");
     }
 
+    for template in ["tin_suffix", "vikarana_rule", "verb_anga_rule"] {
+        let claims = vidya
+            .fetch_claims("vyakarana", template)
+            .await
+            .context(format!("failed to fetch {template} from vidya"))?;
+        let count = claims.len();
+        if count == 0 {
+            tracing::warn!(template, "no rules loaded — conjugation will not be available");
+        }
+        cache.load_template(template.into(), claims);
+        tracing::info!(template, count, "cached rules from vidya");
+    }
+
     Ok(cache)
 }
 
@@ -242,6 +255,10 @@ async fn serve_http(
         .route("/api/derive", post(api::derive))
         .route("/api/analyze", post(api::analyze))
         .route("/api/paradigm", post(api::paradigm))
+        .route(
+            "/api/conjugation_paradigm",
+            post(api::conjugation_paradigm),
+        )
         .route("/api/sutras", get(api::sutras))
         .route("/api/check", get(api::check))
         .with_state(cache);

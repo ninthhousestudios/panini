@@ -11,12 +11,14 @@ use crate::engine::consistency::{
     CheckReport, check_anga_rules, check_pratyaya_rules, check_sandhi_rules, check_sup_suffix,
     check_tripadi_rules,
 };
+use crate::engine::conjugation::{ConjugationInput, derive_conjugation};
 use crate::engine::declension::{DeclensionInput, analyze_declension, derive_declension};
 use crate::engine::sandhi::{SandhiInput, analyze_sandhi, derive_sandhi};
 use crate::error::PaniniError;
 use crate::mcp::{
-    AnalyzeArgs, AnalyzeOutput, DeclensionAnalyzeOutput, DeriveArgs, DeriveOutput, HealthOutput,
-    ParadigmArgs, ParadigmCell, ParadigmOutput, CASES, NUMBERS,
+    AnalyzeArgs, AnalyzeOutput, ConjugationParadigmArgs, ConjugationParadigmOutput,
+    DeclensionAnalyzeOutput, DeriveArgs, DeriveOutput, HealthOutput, ParadigmArgs, ParadigmCell,
+    ParadigmOutput, CASES, NUMBERS, PURUSHAS, VACANAS,
 };
 use crate::rule_cache::RuleCache;
 
@@ -94,11 +96,29 @@ pub async fn derive(
             )
             ?
         }
+        "conjugation" => {
+            let input: ConjugationInput =
+                serde_json::from_value(args.input.clone()).map_err(|e| {
+                    PaniniError::InvalidArgument {
+                        tool: "derive".into(),
+                        argument: "input".into(),
+                        constraint: "requires {dhatu, gana, lakara, pada, purusha, vacana}".into(),
+                        received: e.to_string(),
+                    }
+                })?;
+            derive_conjugation(
+                cache.get_rules("tin_suffix"),
+                cache.get_rules("vikarana_rule"),
+                cache.get_rules("verb_anga_rule"),
+                cache.get_rules("tripadi_rule"),
+                input,
+            )?
+        }
         other => {
             return Err(PaniniError::InvalidArgument {
                 tool: "derive".into(),
                 argument: "operation".into(),
-                constraint: "must be 'sandhi' or 'declension'".into(),
+                constraint: "must be 'sandhi', 'declension', or 'conjugation'".into(),
                 received: other.into(),
             }
             .into());
@@ -286,6 +306,62 @@ pub async fn check(State(cache): State<AppState>) -> Json<Vec<CheckReport>> {
     }
 
     Json(reports)
+}
+
+pub async fn conjugation_paradigm(
+    State(cache): State<AppState>,
+    Json(args): Json<ConjugationParadigmArgs>,
+) -> Result<Json<ConjugationParadigmOutput>, ApiError> {
+    validate_domain("conjugation_paradigm", &args.domain)?;
+
+    let tin = cache.get_rules("tin_suffix");
+    let vikarana = cache.get_rules("vikarana_rule");
+    let verb_anga = cache.get_rules("verb_anga_rule");
+    let tripadi = cache.get_rules("tripadi_rule");
+
+    let mut cells = Vec::with_capacity(9);
+    for purusha in PURUSHAS {
+        for vacana in VACANAS {
+            let input = ConjugationInput {
+                dhatu: args.dhatu.clone(),
+                gana: args.gana.clone(),
+                lakara: args.lakara.clone(),
+                pada: args.pada.clone(),
+                purusha: purusha.into(),
+                vacana: vacana.into(),
+            };
+            match derive_conjugation(tin, vikarana, verb_anga, tripadi, input) {
+                Ok(result) => {
+                    let form = result.output["form"].as_str().map(String::from);
+                    cells.push(ParadigmCell {
+                        case: purusha.into(),
+                        number: vacana.into(),
+                        form,
+                        trace: Some(result.trace),
+                        error: None,
+                    });
+                }
+                Err(e) => {
+                    cells.push(ParadigmCell {
+                        case: purusha.into(),
+                        number: vacana.into(),
+                        form: None,
+                        trace: None,
+                        error: Some(e.to_string()),
+                    });
+                }
+            }
+        }
+    }
+
+    Ok(Json(ConjugationParadigmOutput {
+        domain: args.domain,
+        dhatu: args.dhatu,
+        gana: args.gana,
+        lakara: args.lakara,
+        pada: args.pada,
+        cells,
+    }))
 }
 
 fn validate_domain(endpoint: &str, domain: &str) -> Result<(), ApiError> {

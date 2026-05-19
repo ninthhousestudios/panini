@@ -8,6 +8,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::engine;
+use crate::engine::conjugation::{ConjugationInput, derive_conjugation};
 use crate::engine::declension::{DeclensionInput, analyze_declension, derive_declension};
 use crate::engine::sandhi::{SandhiInput, analyze_sandhi, derive_sandhi};
 use crate::error::PaniniError;
@@ -88,6 +89,8 @@ pub struct ParadigmArgs {
 
 pub const CASES: [&str; 8] = ["1", "2", "3", "4", "5", "6", "7", "8"];
 pub const NUMBERS: [&str; 3] = ["sg", "du", "pl"];
+pub const PURUSHAS: [&str; 3] = ["prathama", "madhyama", "uttama"];
+pub const VACANAS: [&str; 3] = ["ekavacana", "dvivacana", "bahuvacana"];
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ParadigmCell {
@@ -109,6 +112,25 @@ pub struct ParadigmOutput {
     pub cells: Vec<ParadigmCell>,
 }
 
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ConjugationParadigmArgs {
+    pub domain: String,
+    pub dhatu: String,
+    pub gana: String,
+    pub lakara: String,
+    pub pada: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ConjugationParadigmOutput {
+    pub domain: String,
+    pub dhatu: String,
+    pub gana: String,
+    pub lakara: String,
+    pub pada: String,
+    pub cells: Vec<ParadigmCell>,
+}
+
 #[tool_router(router = tool_router)]
 impl PaniniServer {
     #[tool(description = "Health check. Returns version and rule cache statistics.")]
@@ -126,7 +148,7 @@ impl PaniniServer {
         serde_json::to_string_pretty(&out).map_err(json_err)
     }
 
-    #[tool(description = "Forward derivation. domain=vyakarana, operation=sandhi|declension. Sandhi input: {first, second}. Declension input: {stem, stem_type, case, number}. Returns result and sūtra-cited trace.")]
+    #[tool(description = "Forward derivation. domain=vyakarana, operation=sandhi|declension|conjugation. Sandhi input: {first, second}. Declension input: {stem, stem_type, case, number}. Conjugation input: {dhatu, gana, lakara, pada, purusha, vacana}. Returns result and sūtra-cited trace.")]
     pub async fn panini_derive(
         &self,
         Parameters(args): Parameters<DeriveArgs>,
@@ -179,11 +201,31 @@ impl PaniniServer {
                 )
                 .map_err(to_error_data)?
             }
+            "conjugation" => {
+                let input: ConjugationInput =
+                    serde_json::from_value(args.input.clone()).map_err(|e| {
+                        to_error_data(PaniniError::InvalidArgument {
+                            tool: "panini_derive".into(),
+                            argument: "input".into(),
+                            constraint:
+                                "requires {dhatu, gana, lakara, pada, purusha, vacana}".into(),
+                            received: e.to_string(),
+                        })
+                    })?;
+                derive_conjugation(
+                    self.cache.get_rules("tin_suffix"),
+                    self.cache.get_rules("vikarana_rule"),
+                    self.cache.get_rules("verb_anga_rule"),
+                    self.cache.get_rules("tripadi_rule"),
+                    input,
+                )
+                .map_err(to_error_data)?
+            }
             other => {
                 return Err(to_error_data(PaniniError::InvalidArgument {
                     tool: "panini_derive".into(),
                     argument: "operation".into(),
-                    constraint: "must be 'sandhi' or 'declension'".into(),
+                    constraint: "must be 'sandhi', 'declension', or 'conjugation'".into(),
                     received: other.into(),
                 }));
             }
@@ -325,6 +367,71 @@ impl PaniniServer {
         };
         serde_json::to_string_pretty(&out).map_err(json_err)
     }
+
+    #[tool(description = "Conjugation paradigm generation. domain=vyakarana. Takes dhatu, gana, lakara, pada. Returns 9-cell grid (3 puruṣa × 3 vacana) with derived forms and sūtra-cited traces.")]
+    pub async fn panini_conjugation_paradigm(
+        &self,
+        Parameters(args): Parameters<ConjugationParadigmArgs>,
+    ) -> Result<String, ErrorData> {
+        if args.domain != "vyakarana" {
+            return Err(to_error_data(PaniniError::InvalidArgument {
+                tool: "panini_conjugation_paradigm".into(),
+                argument: "domain".into(),
+                constraint: "must be 'vyakarana'".into(),
+                received: args.domain,
+            }));
+        }
+
+        let tin = self.cache.get_rules("tin_suffix");
+        let vikarana = self.cache.get_rules("vikarana_rule");
+        let verb_anga = self.cache.get_rules("verb_anga_rule");
+        let tripadi = self.cache.get_rules("tripadi_rule");
+
+        let mut cells = Vec::with_capacity(9);
+        for purusha in PURUSHAS {
+            for vacana in VACANAS {
+                let input = ConjugationInput {
+                    dhatu: args.dhatu.clone(),
+                    gana: args.gana.clone(),
+                    lakara: args.lakara.clone(),
+                    pada: args.pada.clone(),
+                    purusha: purusha.into(),
+                    vacana: vacana.into(),
+                };
+                match derive_conjugation(tin, vikarana, verb_anga, tripadi, input) {
+                    Ok(result) => {
+                        let form = result.output["form"].as_str().map(String::from);
+                        cells.push(ParadigmCell {
+                            case: purusha.into(),
+                            number: vacana.into(),
+                            form,
+                            trace: Some(result.trace),
+                            error: None,
+                        });
+                    }
+                    Err(e) => {
+                        cells.push(ParadigmCell {
+                            case: purusha.into(),
+                            number: vacana.into(),
+                            form: None,
+                            trace: None,
+                            error: Some(e.to_string()),
+                        });
+                    }
+                }
+            }
+        }
+
+        let out = ConjugationParadigmOutput {
+            domain: args.domain,
+            dhatu: args.dhatu,
+            gana: args.gana,
+            lakara: args.lakara,
+            pada: args.pada,
+            cells,
+        };
+        serde_json::to_string_pretty(&out).map_err(json_err)
+    }
 }
 
 #[tool_handler(router = self.tool_router)]
@@ -333,8 +440,9 @@ impl ServerHandler for PaniniServer {
         ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
             .with_instructions(
                 "panini v0.1.0 — Sanskrit grammatical derivation engine. \
-                 Tools: panini_health, panini_derive (sandhi|declension), \
-                 panini_analyze (sandhi|declension), panini_paradigm.",
+                 Tools: panini_health, panini_derive (sandhi|declension|conjugation), \
+                 panini_analyze (sandhi|declension), panini_paradigm, \
+                 panini_conjugation_paradigm.",
             )
     }
 }

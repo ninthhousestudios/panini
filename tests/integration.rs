@@ -1,3 +1,4 @@
+use panini::engine::conjugation::{ConjugationInput, derive_conjugation};
 use panini::engine::declension::{DeclensionInput, analyze_declension, derive_declension};
 use panini::engine::sandhi::{SandhiInput, analyze_sandhi, derive_sandhi};
 use panini::engine::TraceStep;
@@ -501,5 +502,151 @@ async fn analyze_declension_ambiguous() {
         matching.len() >= 3,
         "devābhyām should match inst/dat/abl du, got {} candidates",
         matching.len()
+    );
+}
+
+// --- Conjugation tests ---
+
+fn derive_conj(cache: &RuleCache, dhatu: &str, purusha: &str, vacana: &str) -> String {
+    let result = derive_conjugation(
+        cache.get_rules("tin_suffix"),
+        cache.get_rules("vikarana_rule"),
+        cache.get_rules("verb_anga_rule"),
+        cache.get_rules("tripadi_rule"),
+        ConjugationInput {
+            dhatu: dhatu.into(),
+            gana: "1".into(),
+            lakara: "laṭ".into(),
+            pada: "parasmaipada".into(),
+            purusha: purusha.into(),
+            vacana: vacana.into(),
+        },
+    )
+    .unwrap();
+    result.output["form"].as_str().unwrap().to_string()
+}
+
+#[tokio::test]
+async fn conjugation_bhuu_full_paradigm() {
+    let cache = build_cache();
+    let expected = [
+        ("prathama", "ekavacana", "bhavati"),
+        ("prathama", "dvivacana", "bhavataḥ"),
+        ("prathama", "bahuvacana", "bhavanti"),
+        ("madhyama", "ekavacana", "bhavasi"),
+        ("madhyama", "dvivacana", "bhavathaḥ"),
+        ("madhyama", "bahuvacana", "bhavatha"),
+        ("uttama", "ekavacana", "bhavāmi"),
+        ("uttama", "dvivacana", "bhavāvaḥ"),
+        ("uttama", "bahuvacana", "bhavāmaḥ"),
+    ];
+    for (purusha, vacana, exp) in expected {
+        let form = derive_conj(&cache, "bhū", purusha, vacana);
+        assert_eq!(form, exp, "√bhū {purusha} {vacana} expected={exp}");
+    }
+}
+
+#[tokio::test]
+async fn conjugation_nii_spot_check() {
+    let cache = build_cache();
+    assert_eq!(derive_conj(&cache, "nī", "prathama", "ekavacana"), "nayati");
+    assert_eq!(derive_conj(&cache, "nī", "uttama", "ekavacana"), "nayāmi");
+}
+
+#[tokio::test]
+async fn conjugation_budh_medial_guna() {
+    let cache = build_cache();
+    assert_eq!(
+        derive_conj(&cache, "budh", "prathama", "ekavacana"),
+        "bodhati"
+    );
+}
+
+#[tokio::test]
+async fn conjugation_path_no_guna() {
+    let cache = build_cache();
+    assert_eq!(
+        derive_conj(&cache, "paṭh", "prathama", "ekavacana"),
+        "paṭhati"
+    );
+}
+
+#[tokio::test]
+async fn conjugation_ji() {
+    let cache = build_cache();
+    assert_eq!(
+        derive_conj(&cache, "ji", "prathama", "ekavacana"),
+        "jayati"
+    );
+}
+
+#[tokio::test]
+async fn conjugation_trace_shows_sutra_refs() {
+    let cache = build_cache();
+    let result = derive_conjugation(
+        cache.get_rules("tin_suffix"),
+        cache.get_rules("vikarana_rule"),
+        cache.get_rules("verb_anga_rule"),
+        cache.get_rules("tripadi_rule"),
+        ConjugationInput {
+            dhatu: "bhū".into(),
+            gana: "1".into(),
+            lakara: "laṭ".into(),
+            pada: "parasmaipada".into(),
+            purusha: "prathama".into(),
+            vacana: "ekavacana".into(),
+        },
+    )
+    .unwrap();
+    let refs: Vec<_> = result
+        .trace
+        .iter()
+        .filter_map(|t| t.rule_ref.as_deref())
+        .collect();
+    assert!(refs.contains(&"3.4.78"), "missing tiṅ sūtra");
+    assert!(refs.contains(&"3.1.68"), "missing vikaraṇa sūtra");
+    assert!(refs.contains(&"7.3.84"), "missing guṇa sūtra");
+    assert!(refs.contains(&"6.1.78"), "missing semivowel sūtra");
+}
+
+#[tokio::test]
+async fn conjugation_tripadi_derives_visarga() {
+    let cache = build_cache();
+    let result = derive_conjugation(
+        cache.get_rules("tin_suffix"),
+        cache.get_rules("vikarana_rule"),
+        cache.get_rules("verb_anga_rule"),
+        cache.get_rules("tripadi_rule"),
+        ConjugationInput {
+            dhatu: "bhū".into(),
+            gana: "1".into(),
+            lakara: "laṭ".into(),
+            pada: "parasmaipada".into(),
+            purusha: "prathama".into(),
+            vacana: "dvivacana".into(),
+        },
+    )
+    .unwrap();
+    assert_eq!(result.output["form"], "bhavataḥ");
+    let refs: Vec<_> = result
+        .trace
+        .iter()
+        .filter_map(|t| t.rule_ref.as_deref())
+        .collect();
+    assert!(refs.contains(&"8.2.66"), "missing s→r tripadi rule");
+    assert!(refs.contains(&"8.3.15"), "missing r→ḥ tripadi rule");
+}
+
+#[tokio::test]
+async fn conjugation_cache_loads_templates() {
+    let cache = build_cache();
+    assert!(cache.rule_count("tin_suffix") > 0, "no tin_suffix rules");
+    assert!(
+        cache.rule_count("vikarana_rule") > 0,
+        "no vikarana rules"
+    );
+    assert!(
+        cache.rule_count("verb_anga_rule") > 0,
+        "no verb_anga rules"
     );
 }

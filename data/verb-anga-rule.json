@@ -1,0 +1,105 @@
+[
+  {
+    "params": {
+      "stage": "pre_vikarana",
+      "rule_type": "guna",
+      "condition_dhatu_final": "ū",
+      "position": "dhatu_final",
+      "input": "ū",
+      "output": "o",
+      "sutra": "7.3.84",
+      "sutra_position": "07.03.084"
+    },
+    "statement": "ū → o (guṇa) before sārvadhātuka (sārvaddhātukārdhadhātukayoḥ, Aṣṭ. 7.3.84)"
+  },
+  {
+    "params": {
+      "stage": "pre_vikarana",
+      "rule_type": "guna",
+      "condition_dhatu_final": "ī",
+      "position": "dhatu_final",
+      "input": "ī",
+      "output": "e",
+      "sutra": "7.3.84",
+      "sutra_position": "07.03.084"
+    },
+    "statement": "ī → e (guṇa) before sārvadhātuka (sārvaddhātukārdhadhātukayoḥ, Aṣṭ. 7.3.84)"
+  },
+  {
+    "params": {
+      "stage": "pre_vikarana",
+      "rule_type": "guna",
+      "condition_dhatu_final": "i",
+      "position": "dhatu_final",
+      "input": "i",
+      "output": "e",
+      "sutra": "7.3.84",
+      "sutra_position": "07.03.084"
+    },
+    "statement": "i → e (guṇa) before sārvadhātuka (sārvaddhātukārdhadhātukayoḥ, Aṣṭ. 7.3.84)"
+  },
+  {
+    "params": {
+      "stage": "pre_vikarana",
+      "rule_type": "guna",
+      "condition_dhatu_vowel": "u",
+      "position": "dhatu_medial",
+      "input": "u",
+      "output": "o",
+      "sutra": "7.3.84",
+      "sutra_position": "07.03.084"
+    },
+    "statement": "u → o (guṇa, medial) before sārvadhātuka (sārvaddhātukārdhadhātukayoḥ, Aṣṭ. 7.3.84)"
+  },
+  {
+    "params": {
+      "stage": "pre_vikarana",
+      "rule_type": "semivowel",
+      "condition_dhatu_final": "o",
+      "position": "dhatu_final",
+      "input": "o",
+      "output": "av",
+      "sutra": "6.1.78",
+      "sutra_position": "06.01.078"
+    },
+    "statement": "o → av (semivowel substitution, eco'yavāyāvaḥ, Aṣṭ. 6.1.78)"
+  },
+  {
+    "params": {
+      "stage": "pre_vikarana",
+      "rule_type": "semivowel",
+      "condition_dhatu_final": "e",
+      "position": "dhatu_final",
+      "input": "e",
+      "output": "ay",
+      "sutra": "6.1.78",
+      "sutra_position": "06.01.078"
+    },
+    "statement": "e → ay (semivowel substitution, eco'yavāyāvaḥ, Aṣṭ. 6.1.78)"
+  },
+  {
+    "params": {
+      "stage": "pre_tin",
+      "rule_type": "dirgha",
+      "condition_suffix_initial_class": "yaṅ",
+      "position": "anga_final",
+      "input": "a",
+      "output": "ā",
+      "sutra": "7.3.101",
+      "sutra_position": "07.03.101"
+    },
+    "statement": "a → ā before yaṅ-initial tiṅ (ato dīrgho yañi, Aṣṭ. 7.3.101)"
+  },
+  {
+    "params": {
+      "stage": "pre_tin",
+      "rule_type": "coalescence",
+      "position": "junction",
+      "operation_input": "aa",
+      "operation_output": "a",
+      "sutra": "6.1.97",
+      "sutra_position": "06.01.097"
+    },
+    "statement": "a + a → a at aṅga-tiṅ junction (ato guṇe, Aṣṭ. 6.1.97)"
+  }
+]

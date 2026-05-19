@@ -1,0 +1,119 @@
+[
+  {
+    "params": {
+      "lakara": "laṭ",
+      "purusha": "prathama",
+      "vacana": "ekavacana",
+      "pada": "parasmaipada",
+      "pratyaya_name": "tip",
+      "suffix": "ti",
+      "sutra": "3.4.78",
+      "sutra_position": "03.04.078"
+    },
+    "statement": "prathama ekavacana: tip → ti (tiptasjhi... Aṣṭ. 3.4.78)"
+  },
+  {
+    "params": {
+      "lakara": "laṭ",
+      "purusha": "prathama",
+      "vacana": "dvivacana",
+      "pada": "parasmaipada",
+      "pratyaya_name": "tas",
+      "suffix": "tas",
+      "sutra": "3.4.78",
+      "sutra_position": "03.04.078"
+    },
+    "statement": "prathama dvivacana: tas (tiptasjhi... Aṣṭ. 3.4.78)"
+  },
+  {
+    "params": {
+      "lakara": "laṭ",
+      "purusha": "prathama",
+      "vacana": "bahuvacana",
+      "pada": "parasmaipada",
+      "pratyaya_name": "jhi",
+      "suffix": "anti",
+      "sutra": "3.4.78",
+      "sutra_position": "03.04.078"
+    },
+    "statement": "prathama bahuvacana: jhi → anti (jhi→ant 7.1.3, +i 3.4.113; Aṣṭ. 3.4.78)"
+  },
+  {
+    "params": {
+      "lakara": "laṭ",
+      "purusha": "madhyama",
+      "vacana": "ekavacana",
+      "pada": "parasmaipada",
+      "pratyaya_name": "sip",
+      "suffix": "si",
+      "sutra": "3.4.78",
+      "sutra_position": "03.04.078"
+    },
+    "statement": "madhyama ekavacana: sip → si (tiptasjhi... Aṣṭ. 3.4.78)"
+  },
+  {
+    "params": {
+      "lakara": "laṭ",
+      "purusha": "madhyama",
+      "vacana": "dvivacana",
+      "pada": "parasmaipada",
+      "pratyaya_name": "thas",
+      "suffix": "thas",
+      "sutra": "3.4.78",
+      "sutra_position": "03.04.078"
+    },
+    "statement": "madhyama dvivacana: thas (tiptasjhi... Aṣṭ. 3.4.78)"
+  },
+  {
+    "params": {
+      "lakara": "laṭ",
+      "purusha": "madhyama",
+      "vacana": "bahuvacana",
+      "pada": "parasmaipada",
+      "pratyaya_name": "tha",
+      "suffix": "tha",
+      "sutra": "3.4.78",
+      "sutra_position": "03.04.078"
+    },
+    "statement": "madhyama bahuvacana: tha (tiptasjhi... Aṣṭ. 3.4.78)"
+  },
+  {
+    "params": {
+      "lakara": "laṭ",
+      "purusha": "uttama",
+      "vacana": "ekavacana",
+      "pada": "parasmaipada",
+      "pratyaya_name": "mip",
+      "suffix": "mi",
+      "sutra": "3.4.78",
+      "sutra_position": "03.04.078"
+    },
+    "statement": "uttama ekavacana: mip → mi (tiptasjhi... Aṣṭ. 3.4.78)"
+  },
+  {
+    "params": {
+      "lakara": "laṭ",
+      "purusha": "uttama",
+      "vacana": "dvivacana",
+      "pada": "parasmaipada",
+      "pratyaya_name": "vas",
+      "suffix": "vas",
+      "sutra": "3.4.78",
+      "sutra_position": "03.04.078"
+    },
+    "statement": "uttama dvivacana: vas (tiptasjhi... Aṣṭ. 3.4.78)"
+  },
+  {
+    "params": {
+      "lakara": "laṭ",
+      "purusha": "uttama",
+      "vacana": "bahuvacana",
+      "pada": "parasmaipada",
+      "pratyaya_name": "mas",
+      "suffix": "mas",
+      "sutra": "3.4.78",
+      "sutra_position": "03.04.078"
+    },
+    "statement": "uttama bahuvacana: mas (tiptasjhi... Aṣṭ. 3.4.78)"
+  }
+]

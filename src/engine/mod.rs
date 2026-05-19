@@ -1,3 +1,4 @@
+pub mod conjugation;
 pub mod consistency;
 pub mod declension;
 pub mod phoneme;

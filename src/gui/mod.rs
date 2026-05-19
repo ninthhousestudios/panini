@@ -1,3 +1,4 @@
+pub mod conjugation;
 pub mod paradigm;
 pub mod sandhi;
 pub mod sutra;
@@ -22,6 +23,7 @@ const SCALE_DEFAULT: f32 = 1.1;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Tab {
     Paradigm,
+    Conjugation,
     Sandhi,
     Sutras,
     Verify,
@@ -32,6 +34,7 @@ struct State {
     active_tab: Tab,
     scale: f32,
     paradigm: paradigm::State,
+    conjugation: conjugation::State,
     sandhi: sandhi::State,
     sutra: sutra::State,
     verify: verify::State,
@@ -44,6 +47,7 @@ enum Message {
     ZoomOut,
     ZoomReset,
     Paradigm(paradigm::Message),
+    Conjugation(conjugation::Message),
     Sandhi(sandhi::Message),
     Sutra(sutra::Message),
     Verify(verify::Message),
@@ -55,6 +59,7 @@ fn boot(cache: Arc<RuleCache>) -> (State, Task<Message>) {
         active_tab: Tab::Paradigm,
         scale: SCALE_DEFAULT,
         paradigm: paradigm::State::default(),
+        conjugation: conjugation::State::default(),
         sandhi: sandhi::State::default(),
         sutra: sutra::State::default(),
         verify: verify::State::default(),
@@ -92,6 +97,10 @@ fn update(state: &mut State, message: Message) -> Task<Message> {
         }
         Message::Paradigm(msg) => {
             paradigm::update(&state.cache, &mut state.paradigm, msg).map(Message::Paradigm)
+        }
+        Message::Conjugation(msg) => {
+            conjugation::update(&state.cache, &mut state.conjugation, msg)
+                .map(Message::Conjugation)
         }
         Message::Sandhi(msg) => {
             sandhi::update(&state.cache, &mut state.sandhi, msg).map(Message::Sandhi)
@@ -134,6 +143,7 @@ fn view(state: &State) -> Element<'_, Message> {
 
     let tab_bar = row![
         tab_button("Paradigms", Tab::Paradigm, state.active_tab),
+        tab_button("Conjugation", Tab::Conjugation, state.active_tab),
         tab_button("Sandhi", Tab::Sandhi, state.active_tab),
         tab_button("Sūtras", Tab::Sutras, state.active_tab),
         tab_button("Verification", Tab::Verify, state.active_tab),
@@ -144,6 +154,7 @@ fn view(state: &State) -> Element<'_, Message> {
 
     let body: Element<'_, Message> = match state.active_tab {
         Tab::Paradigm => paradigm::view(&state.paradigm).map(Message::Paradigm),
+        Tab::Conjugation => conjugation::view(&state.conjugation).map(Message::Conjugation),
         Tab::Sandhi => sandhi::view(&state.sandhi).map(Message::Sandhi),
         Tab::Sutras => sutra::view(&state.sutra).map(Message::Sutra),
         Tab::Verify => verify::view(&state.verify).map(Message::Verify),
