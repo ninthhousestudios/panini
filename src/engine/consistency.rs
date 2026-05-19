@@ -615,6 +615,8 @@ struct AngaParams {
     condition_suffix_initial: Option<String>,
     #[serde(default)]
     condition_vacana: Option<String>,
+    #[serde(default)]
+    condition_vibhakti: Option<String>,
     operation_input: String,
     operation_output: String,
     #[serde(default)]
@@ -640,14 +642,15 @@ pub fn check_anga_rules(rules: &[CachedRule]) -> CheckReport {
         }
     }
 
-    // Key: (stem_final, suffix_initial, vacana, operation_input)
+    // Key: (stem_final, suffix_initial, vacana, vibhakti, operation_input)
     let mut by_pattern: BTreeMap<String, Vec<&AngaParams>> = BTreeMap::new();
     for params in &parsed {
         let si = params.condition_suffix_initial.as_deref().unwrap_or("*");
         let vac = params.condition_vacana.as_deref().unwrap_or("*");
+        let vib = params.condition_vibhakti.as_deref().unwrap_or("*");
         let key = format!(
-            "stem={} suffix={} vacana={} input={}",
-            params.condition_stem_final, si, vac, params.operation_input
+            "stem={} suffix={} vacana={} vibhakti={} input={}",
+            params.condition_stem_final, si, vac, vib, params.operation_input
         );
         by_pattern.entry(key).or_default().push(params);
     }
