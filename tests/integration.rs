@@ -505,6 +505,171 @@ async fn analyze_declension_ambiguous() {
     );
 }
 
+// --- Neuter a-stem tests ---
+
+#[tokio::test]
+async fn paradigm_phala_complete() {
+    let cache = build_cache();
+    let cells = generate_paradigm(&cache, "phala", "a-stem-n");
+    assert_eq!(cells.len(), 24);
+
+    let expected = vec![
+        ("1", "sg", "phalam"),
+        ("1", "du", "phale"),
+        ("1", "pl", "phalāni"),
+        ("2", "sg", "phalam"),
+        ("2", "du", "phale"),
+        ("2", "pl", "phalāni"),
+        ("3", "sg", "phalena"),
+        ("3", "du", "phalābhyām"),
+        ("3", "pl", "phalaiḥ"),
+        ("4", "sg", "phalāya"),
+        ("4", "du", "phalābhyām"),
+        ("4", "pl", "phalebhyaḥ"),
+        ("5", "sg", "phalāt"),
+        ("5", "du", "phalābhyām"),
+        ("5", "pl", "phalebhyaḥ"),
+        ("6", "sg", "phalasya"),
+        ("6", "du", "phalayoḥ"),
+        ("6", "pl", "phalānām"),
+        ("7", "sg", "phale"),
+        ("7", "du", "phalayoḥ"),
+        ("7", "pl", "phaleṣu"),
+        ("8", "sg", "phala"),
+        ("8", "du", "phale"),
+        ("8", "pl", "phalāni"),
+    ];
+
+    let mut errors = Vec::new();
+    for (case, number, exp) in expected {
+        let cell = cells.iter().find(|(c, n, _)| c == case && n == number).unwrap();
+        match &cell.2 {
+            Ok((form, trace)) => {
+                if form != exp {
+                    errors.push(format!("case={case} number={number}: got {form}, expected {exp}"));
+                }
+                if !trace.iter().any(|t| t.rule_ref.is_some()) {
+                    errors.push(format!("case={case} number={number}: trace missing sūtra citations"));
+                }
+            }
+            Err(e) => errors.push(format!("case={case} number={number}: {e}")),
+        }
+    }
+    assert!(errors.is_empty(), "phala paradigm errors:\n{}", errors.join("\n"));
+}
+
+#[tokio::test]
+async fn analyze_neuter_form() {
+    let cache = build_cache();
+    let analyzed = analyze_declension(
+        cache.get_rules("sup_suffix"),
+        cache.get_rules("pratyaya_rule"),
+        cache.get_rules("anga_rule"),
+        cache.get_rules("sandhi_rule"),
+        cache.get_rules("tripadi_rule"),
+        "phalam",
+    )
+    .unwrap();
+    assert!(
+        analyzed.candidates.iter().any(|c| c.stem == "phala" && c.stem_type == "a-stem-n"),
+        "should find phalam as a-stem-n: {:?}",
+        analyzed.candidates
+    );
+}
+
+// --- Feminine ā-stem tests ---
+
+#[tokio::test]
+async fn paradigm_vidya_complete() {
+    let cache = build_cache();
+    let cells = generate_paradigm(&cache, "vidyā", "aa-stem-f");
+    assert_eq!(cells.len(), 24);
+
+    let expected = vec![
+        ("1", "sg", "vidyā"),
+        ("1", "du", "vidye"),
+        ("1", "pl", "vidyāḥ"),
+        ("2", "sg", "vidyām"),
+        ("2", "du", "vidye"),
+        ("2", "pl", "vidyāḥ"),
+        ("3", "sg", "vidyayā"),
+        ("3", "du", "vidyābhyām"),
+        ("3", "pl", "vidyābhiḥ"),
+        ("4", "sg", "vidyāyai"),
+        ("4", "du", "vidyābhyām"),
+        ("4", "pl", "vidyābhyaḥ"),
+        ("5", "sg", "vidyāyāḥ"),
+        ("5", "du", "vidyābhyām"),
+        ("5", "pl", "vidyābhyaḥ"),
+        ("6", "sg", "vidyāyāḥ"),
+        ("6", "du", "vidyayoḥ"),
+        ("6", "pl", "vidyānām"),
+        ("7", "sg", "vidyāyām"),
+        ("7", "du", "vidyayoḥ"),
+        ("7", "pl", "vidyāsu"),
+        ("8", "sg", "vidye"),
+        ("8", "du", "vidye"),
+        ("8", "pl", "vidyāḥ"),
+    ];
+
+    let mut errors = Vec::new();
+    for (case, number, exp) in expected {
+        let cell = cells.iter().find(|(c, n, _)| c == case && n == number).unwrap();
+        match &cell.2 {
+            Ok((form, trace)) => {
+                if form != exp {
+                    errors.push(format!("case={case} number={number}: got {form}, expected {exp}"));
+                }
+                if !trace.iter().any(|t| t.rule_ref.is_some()) {
+                    errors.push(format!("case={case} number={number}: trace missing sūtra citations"));
+                }
+            }
+            Err(e) => errors.push(format!("case={case} number={number}: {e}")),
+        }
+    }
+    assert!(errors.is_empty(), "vidyā paradigm errors:\n{}", errors.join("\n"));
+}
+
+#[tokio::test]
+async fn analyze_feminine_form() {
+    let cache = build_cache();
+    let analyzed = analyze_declension(
+        cache.get_rules("sup_suffix"),
+        cache.get_rules("pratyaya_rule"),
+        cache.get_rules("anga_rule"),
+        cache.get_rules("sandhi_rule"),
+        cache.get_rules("tripadi_rule"),
+        "vidyāyai",
+    )
+    .unwrap();
+    assert!(
+        analyzed.candidates.iter().any(|c| c.stem == "vidyā" && c.stem_type == "aa-stem-f"),
+        "should find vidyāyai as aa-stem-f: {:?}",
+        analyzed.candidates
+    );
+}
+
+#[tokio::test]
+async fn deva_paradigm_unchanged() {
+    let cache = build_cache();
+    let cells = generate_paradigm(&cache, "deva", "a-stem-m");
+    let expected = vec![
+        ("1", "sg", "devaḥ"), ("1", "du", "devau"), ("1", "pl", "devāḥ"),
+        ("2", "sg", "devam"), ("2", "du", "devau"), ("2", "pl", "devān"),
+        ("3", "sg", "devena"), ("3", "du", "devābhyām"), ("3", "pl", "devaiḥ"),
+        ("4", "sg", "devāya"), ("4", "du", "devābhyām"), ("4", "pl", "devebhyaḥ"),
+        ("5", "sg", "devāt"), ("5", "du", "devābhyām"), ("5", "pl", "devebhyaḥ"),
+        ("6", "sg", "devasya"), ("6", "du", "devayoḥ"), ("6", "pl", "devānām"),
+        ("7", "sg", "deve"), ("7", "du", "devayoḥ"), ("7", "pl", "deveṣu"),
+        ("8", "sg", "deva"), ("8", "du", "devau"), ("8", "pl", "devāḥ"),
+    ];
+    for (case, number, exp) in expected {
+        let cell = cells.iter().find(|(c, n, _)| c == case && n == number).unwrap();
+        let form = cell.2.as_ref().unwrap().0.as_str();
+        assert_eq!(form, exp, "regression: case={case} number={number}");
+    }
+}
+
 // --- Conjugation tests ---
 
 fn derive_conj(cache: &RuleCache, dhatu: &str, purusha: &str, vacana: &str) -> String {

@@ -335,5 +335,679 @@
       "sutra_position": "04.01.002"
     },
     "statement": "sambodhana bahuvacana: jas → as (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "prathama",
+      "vacana": "ekavacana",
+      "pratyaya": "su",
+      "suffix": "s",
+      "markers": [
+        "u"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "prathama ekavacana: su → s (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "prathama",
+      "vacana": "dvivacana",
+      "pratyaya": "au",
+      "suffix": "au",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "prathama dvivacana: au (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "prathama",
+      "vacana": "bahuvacana",
+      "pratyaya": "jas",
+      "suffix": "as",
+      "markers": [
+        "j"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "prathama bahuvacana: jas → as (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "dvitiya",
+      "vacana": "ekavacana",
+      "pratyaya": "am",
+      "suffix": "am",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "dvitiya ekavacana: am (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "dvitiya",
+      "vacana": "dvivacana",
+      "pratyaya": "aut",
+      "suffix": "au",
+      "markers": [
+        "t"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "dvitiya dvivacana: aut → au (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "dvitiya",
+      "vacana": "bahuvacana",
+      "pratyaya": "śas",
+      "suffix": "as",
+      "markers": [
+        "ś"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "dvitiya bahuvacana: śas → as (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "tritiya",
+      "vacana": "ekavacana",
+      "pratyaya": "ṭā",
+      "suffix": "ā",
+      "markers": [
+        "ṭ"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "tritiya ekavacana: ṭā → ā (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "tritiya",
+      "vacana": "dvivacana",
+      "pratyaya": "bhyām",
+      "suffix": "bhyām",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "tritiya dvivacana: bhyām (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "tritiya",
+      "vacana": "bahuvacana",
+      "pratyaya": "bhis",
+      "suffix": "bhis",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "tritiya bahuvacana: bhis (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "caturthi",
+      "vacana": "ekavacana",
+      "pratyaya": "ṅe",
+      "suffix": "e",
+      "markers": [
+        "ṅ"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "caturthi ekavacana: ṅe → e (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "caturthi",
+      "vacana": "dvivacana",
+      "pratyaya": "bhyām",
+      "suffix": "bhyām",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "caturthi dvivacana: bhyām (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "caturthi",
+      "vacana": "bahuvacana",
+      "pratyaya": "bhyas",
+      "suffix": "bhyas",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "caturthi bahuvacana: bhyas (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "pancami",
+      "vacana": "ekavacana",
+      "pratyaya": "ṅasi",
+      "suffix": "as",
+      "markers": [
+        "ṅ",
+        "i"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "pancami ekavacana: ṅasi → as (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "pancami",
+      "vacana": "dvivacana",
+      "pratyaya": "bhyām",
+      "suffix": "bhyām",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "pancami dvivacana: bhyām (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "pancami",
+      "vacana": "bahuvacana",
+      "pratyaya": "bhyas",
+      "suffix": "bhyas",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "pancami bahuvacana: bhyas (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "sasthi",
+      "vacana": "ekavacana",
+      "pratyaya": "ṅas",
+      "suffix": "as",
+      "markers": [
+        "ṅ"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "sasthi ekavacana: ṅas → as (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "sasthi",
+      "vacana": "dvivacana",
+      "pratyaya": "os",
+      "suffix": "os",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "sasthi dvivacana: os (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "sasthi",
+      "vacana": "bahuvacana",
+      "pratyaya": "ām",
+      "suffix": "ām",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "sasthi bahuvacana: ām (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "saptami",
+      "vacana": "ekavacana",
+      "pratyaya": "ṅi",
+      "suffix": "i",
+      "markers": [
+        "ṅ"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "saptami ekavacana: ṅi → i (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "saptami",
+      "vacana": "dvivacana",
+      "pratyaya": "os",
+      "suffix": "os",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "saptami dvivacana: os (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "saptami",
+      "vacana": "bahuvacana",
+      "pratyaya": "sup",
+      "suffix": "su",
+      "markers": [
+        "p"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "saptami bahuvacana: sup → su (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "sambodhana",
+      "vacana": "ekavacana",
+      "pratyaya": "su",
+      "suffix": "s",
+      "markers": [
+        "u"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "sambodhana ekavacana: su → s (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "sambodhana",
+      "vacana": "dvivacana",
+      "pratyaya": "au",
+      "suffix": "au",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "sambodhana dvivacana: au (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "a-stem-n",
+      "vibhakti": "sambodhana",
+      "vacana": "bahuvacana",
+      "pratyaya": "jas",
+      "suffix": "as",
+      "markers": [
+        "j"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "sambodhana bahuvacana: jas → as (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "prathama",
+      "vacana": "ekavacana",
+      "pratyaya": "su",
+      "suffix": "s",
+      "markers": [
+        "u"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "prathama ekavacana: su → s (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "prathama",
+      "vacana": "dvivacana",
+      "pratyaya": "au",
+      "suffix": "au",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "prathama dvivacana: au (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "prathama",
+      "vacana": "bahuvacana",
+      "pratyaya": "jas",
+      "suffix": "as",
+      "markers": [
+        "j"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "prathama bahuvacana: jas → as (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "dvitiya",
+      "vacana": "ekavacana",
+      "pratyaya": "am",
+      "suffix": "am",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "dvitiya ekavacana: am (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "dvitiya",
+      "vacana": "dvivacana",
+      "pratyaya": "aut",
+      "suffix": "au",
+      "markers": [
+        "t"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "dvitiya dvivacana: aut → au (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "dvitiya",
+      "vacana": "bahuvacana",
+      "pratyaya": "śas",
+      "suffix": "as",
+      "markers": [
+        "ś"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "dvitiya bahuvacana: śas → as (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "tritiya",
+      "vacana": "ekavacana",
+      "pratyaya": "ṭā",
+      "suffix": "ā",
+      "markers": [
+        "ṭ"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "tritiya ekavacana: ṭā → ā (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "tritiya",
+      "vacana": "dvivacana",
+      "pratyaya": "bhyām",
+      "suffix": "bhyām",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "tritiya dvivacana: bhyām (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "tritiya",
+      "vacana": "bahuvacana",
+      "pratyaya": "bhis",
+      "suffix": "bhis",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "tritiya bahuvacana: bhis (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "caturthi",
+      "vacana": "ekavacana",
+      "pratyaya": "ṅe",
+      "suffix": "e",
+      "markers": [
+        "ṅ"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "caturthi ekavacana: ṅe → e (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "caturthi",
+      "vacana": "dvivacana",
+      "pratyaya": "bhyām",
+      "suffix": "bhyām",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "caturthi dvivacana: bhyām (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "caturthi",
+      "vacana": "bahuvacana",
+      "pratyaya": "bhyas",
+      "suffix": "bhyas",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "caturthi bahuvacana: bhyas (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "pancami",
+      "vacana": "ekavacana",
+      "pratyaya": "ṅasi",
+      "suffix": "as",
+      "markers": [
+        "ṅ",
+        "i"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "pancami ekavacana: ṅasi → as (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "pancami",
+      "vacana": "dvivacana",
+      "pratyaya": "bhyām",
+      "suffix": "bhyām",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "pancami dvivacana: bhyām (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "pancami",
+      "vacana": "bahuvacana",
+      "pratyaya": "bhyas",
+      "suffix": "bhyas",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "pancami bahuvacana: bhyas (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "sasthi",
+      "vacana": "ekavacana",
+      "pratyaya": "ṅas",
+      "suffix": "as",
+      "markers": [
+        "ṅ"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "sasthi ekavacana: ṅas → as (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "sasthi",
+      "vacana": "dvivacana",
+      "pratyaya": "os",
+      "suffix": "os",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "sasthi dvivacana: os (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "sasthi",
+      "vacana": "bahuvacana",
+      "pratyaya": "ām",
+      "suffix": "ām",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "sasthi bahuvacana: ām (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "saptami",
+      "vacana": "ekavacana",
+      "pratyaya": "ṅi",
+      "suffix": "i",
+      "markers": [
+        "ṅ"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "saptami ekavacana: ṅi → i (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "saptami",
+      "vacana": "dvivacana",
+      "pratyaya": "os",
+      "suffix": "os",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "saptami dvivacana: os (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "saptami",
+      "vacana": "bahuvacana",
+      "pratyaya": "sup",
+      "suffix": "su",
+      "markers": [
+        "p"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "saptami bahuvacana: sup → su (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "sambodhana",
+      "vacana": "ekavacana",
+      "pratyaya": "su",
+      "suffix": "s",
+      "markers": [
+        "u"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "sambodhana ekavacana: su → s (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "sambodhana",
+      "vacana": "dvivacana",
+      "pratyaya": "au",
+      "suffix": "au",
+      "markers": [],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "sambodhana dvivacana: au (Aṣṭ. 4.1.2)"
+  },
+  {
+    "params": {
+      "stem_class": "aa-stem-f",
+      "vibhakti": "sambodhana",
+      "vacana": "bahuvacana",
+      "pratyaya": "jas",
+      "suffix": "as",
+      "markers": [
+        "j"
+      ],
+      "sutra": "4.1.2",
+      "sutra_position": "04.01.002"
+    },
+    "statement": "sambodhana bahuvacana: jas → as (Aṣṭ. 4.1.2)"
   }
 ]

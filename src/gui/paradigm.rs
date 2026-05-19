@@ -28,7 +28,7 @@ const NUMBER_LABELS: [(&str, &str); 3] = [
     ("pl", "bahuvacana"),
 ];
 
-const STEM_TYPES: &[&str] = &["a-stem-m"];
+const STEM_TYPES: &[&str] = &["a-stem-m", "a-stem-n", "aa-stem-f"];
 
 #[derive(Default)]
 pub struct State {

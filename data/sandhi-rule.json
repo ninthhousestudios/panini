@@ -15,6 +15,18 @@
     "params": {
       "first": "a",
       "second": "a",
+      "result": "a",
+      "sutra": "6.1.107",
+      "sutra_position": "06.01.107",
+      "rule_type": "apavada",
+      "condition_pratyaya": "su"
+    },
+    "statement": "a + a(m) → a (ami pūrvaḥ — neuter prathama su→am, Aṣṭ. 6.1.107)"
+  },
+  {
+    "params": {
+      "first": "a",
+      "second": "a",
       "result": "ā",
       "sutra": "6.1.101",
       "sutra_position": "06.01.101",
@@ -98,6 +110,28 @@
       "rule_type": "utsarga"
     },
     "statement": "a + ī → e (guṇa-sandhi, Aṣṭ. 6.1.87)"
+  },
+  {
+    "params": {
+      "first": "ā",
+      "second": "i",
+      "result": "e",
+      "sutra": "6.1.87",
+      "sutra_position": "06.01.087",
+      "rule_type": "utsarga"
+    },
+    "statement": "ā + i → e (guṇa-sandhi, Aṣṭ. 6.1.87)"
+  },
+  {
+    "params": {
+      "first": "ā",
+      "second": "ī",
+      "result": "e",
+      "sutra": "6.1.87",
+      "sutra_position": "06.01.087",
+      "rule_type": "utsarga"
+    },
+    "statement": "ā + ī → e (guṇa-sandhi, Aṣṭ. 6.1.87)"
   },
   {
     "params": {

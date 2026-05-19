@@ -110,5 +110,67 @@
       "rule_type": "nitya"
     },
     "statement": "a → e before os (gen/loc dual) (Aṣṭ. 7.3.104)"
+  },
+  {
+    "params": {
+      "condition_stem_final": "a",
+      "condition_markers": [],
+      "condition_suffix_initial": "i",
+      "condition_vacana": "bahuvacana",
+      "operation": "augment",
+      "operation_target": "stem_final",
+      "operation_input": "a",
+      "operation_output": "ān",
+      "sutra": "7.1.72",
+      "sutra_position": "07.01.072",
+      "rule_type": "nitya"
+    },
+    "statement": "a → ān (nUM-āgama + dīrgha) before śi in bahuvacana (Aṣṭ. 7.1.72)"
+  },
+  {
+    "params": {
+      "condition_stem_final": "ā",
+      "condition_markers": [],
+      "condition_suffix_initial": "ā",
+      "operation": "substitute",
+      "operation_target": "stem_final",
+      "operation_input": "ā",
+      "operation_output": "ay",
+      "sutra": "7.3.105",
+      "sutra_position": "07.03.105",
+      "rule_type": "nitya"
+    },
+    "statement": "ā → ay before ā-initial suffix (Aṣṭ. 7.3.105)"
+  },
+  {
+    "params": {
+      "condition_stem_final": "ā",
+      "condition_markers": [],
+      "condition_suffix_initial": "o",
+      "operation": "substitute",
+      "operation_target": "stem_final",
+      "operation_input": "ā",
+      "operation_output": "ay",
+      "sutra": "7.3.105",
+      "sutra_position": "07.03.105",
+      "rule_type": "nitya"
+    },
+    "statement": "ā → ay before o-initial suffix (Aṣṭ. 7.3.105)"
+  },
+  {
+    "params": {
+      "condition_stem_final": "ā",
+      "condition_markers": [],
+      "condition_vibhakti": "sambodhana",
+      "condition_vacana": "ekavacana",
+      "operation": "substitute",
+      "operation_target": "stem_final",
+      "operation_input": "ā",
+      "operation_output": "e",
+      "sutra": "7.3.106",
+      "sutra_position": "07.03.106",
+      "rule_type": "nitya"
+    },
+    "statement": "ā → e in sambodhana ekavacana (Aṣṭ. 7.3.106)"
   }
 ]

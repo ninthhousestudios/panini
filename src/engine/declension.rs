@@ -56,6 +56,8 @@ pub(crate) struct AngaRule {
     #[serde(default)]
     pub(crate) condition_vacana: Option<String>,
     #[serde(default)]
+    pub(crate) condition_vibhakti: Option<String>,
+    #[serde(default)]
     pub(crate) operation: Option<String>,
     #[serde(default)]
     pub(crate) operation_target: Option<String>,
@@ -253,6 +255,11 @@ pub fn derive_declension(
                     continue;
                 }
             }
+            if let Some(ref cond_vib) = params.condition_vibhakti {
+                if cond_vib != vibhakti {
+                    continue;
+                }
+            }
             if current_stem.ends_with(&params.operation_input) {
                 let old_stem = current_stem.clone();
                 current_stem = format!(
@@ -439,7 +446,10 @@ pub fn analyze_declension(
     let mut candidates = Vec::new();
 
     for stem_class in &stem_classes {
-        let probe_stem = stem_class.split('-').next().unwrap_or(stem_class);
+        let probe_stem = match stem_class.as_str() {
+            "aa-stem-f" => "ā",
+            _ => stem_class.split('-').next().unwrap_or(stem_class),
+        };
         let mut probe_successes = 0u32;
 
         for case in &CASES {
