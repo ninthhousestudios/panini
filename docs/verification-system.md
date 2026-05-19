@@ -1,6 +1,6 @@
 # Verification System
 
-Panini has two layers of automated verification: **property-based testing** (compile-time, via `cargo test`) and a **rule consistency checker** (runtime, via `/api/check` and the web UI's Verification tab).
+Panini has two layers of automated verification: **property-based testing** (compile-time, via `cargo test`) and a **rule consistency checker** (runtime, via `/api/check` and the desktop GUI's Verify tab).
 
 Together these provide confidence that the implementation is internally coherent and that the rule data in vidya is well-formed. They are not a substitute for checking correctness against Sanskrit source texts, but they catch a large class of bugs mechanically.
 
@@ -34,7 +34,7 @@ Proptest generates randomized Sanskrit inputs and checks invariants. Current pro
 
 **File:** `src/engine/consistency.rs`
 **API:** `GET /api/check` (returns JSON array of `CheckReport`)
-**Web UI:** Verification tab (loads lazily on first click)
+**Desktop GUI:** Verify tab (`src/gui/verify.rs`)
 
 The checker analyzes the loaded rule data at runtime. It does not execute any derivations — it inspects the rules structurally. It produces one `CheckReport` per template type.
 
@@ -76,7 +76,7 @@ The checker analyzes the loaded rule data at runtime. It does not execute any de
 
 ### When to update
 
-**Add new rules to an existing template in vidya:** No code changes. The checker runs against whatever is loaded at runtime.
+**Add new rules to an existing template:** No code changes needed — add the JSON to `data/` and the checker runs against whatever is loaded at startup.
 
 **Add a new template type (e.g., `tin_suffix` for verbs):** You need a new `check_*` function in `consistency.rs`. Follow this pattern:
 
@@ -95,14 +95,9 @@ The `check_overlap_group()` helper is generic — it takes closures for extracti
 
 **Change how the engine matches rules within a template:** If you change the match key (e.g., add a new condition field that narrows when a rule fires), update the grouping key in the corresponding `check_*` function so it doesn't flag intentional narrowing as ambiguity.
 
-### Web UI
+### Desktop GUI
 
-The Verification tab renders `CheckReport` generically. It handles:
-- Any number of reports (one per template)
-- Variable coverage dimensions (renders whatever `dimensions` array the report contains)
-- Paradigm gaps (only shown when present)
-
-If you add a new template checker, the web UI will render it automatically — no frontend changes needed. If you add a new *kind* of check (beyond parse errors, shadowing, ambiguity, and paradigm gaps), you'll need to add a rendering section in `renderVerification()` in `static/index.html`.
+The Verify tab in the Iced GUI (`src/gui/verify.rs`) renders `CheckReport` natively. It handles any number of reports (one per template), variable coverage dimensions, and paradigm gaps. If you add a new template checker, the GUI will render it automatically. If you add a new *kind* of check (beyond parse errors, shadowing, ambiguity, and paradigm gaps), update the rendering in `src/gui/verify.rs`.
 
 ## File inventory
 
@@ -111,8 +106,8 @@ If you add a new template checker, the web UI will render it automatically — n
 | `src/engine/consistency.rs` | All checker logic: shared types, per-template check functions, unit tests |
 | `src/api.rs` | `check()` handler wires checkers to `GET /api/check` |
 | `src/main.rs` | Registers `/api/check` route |
+| `src/gui/verify.rs` | Desktop GUI verify tab rendering |
 | `tests/properties.rs` | Property-based tests with proptest |
-| `static/index.html` | Verification tab (CSS + JS rendering) |
 | `Cargo.toml` | `proptest` in dev-dependencies |
 
 ## Relationship to manual verification

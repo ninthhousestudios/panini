@@ -1,6 +1,6 @@
 # Pāṇini
 
-A Sanskrit grammar engine and learning tool. Fetches grammar rules from vidya (knowledge store) and applies them to derive, analyze, and display word forms with full sūtra-cited traces.
+A Sanskrit grammar engine and learning tool. Grammar rules are embedded in the binary and applied locally to derive, analyze, and display word forms with full sūtra-cited traces. Rules can optionally be fetched from vidya (knowledge store) via `--vidya-url` for development or when vidya hosts additional data.
 
 ## Language
 
@@ -55,12 +55,12 @@ _Avoid_: conjugation table (that's verbs), inflection table (too generic)
 - Each **step** applies one **rule** (a **sūtra** of vidhi type)
 - A **paradigm** contains 24 **derivations** (8 cases × 3 numbers)
 - An **analysis** is the reverse of a **derivation** — it returns ranked candidates
-- **Rules** are fetched from vidya as structured claims and cached in Pāṇini's engine at startup
-- **Sūtras** that aren't rules (saṁjñā, paribhāṣā, adhikāra) live in vidya as entities or structural facts, not as engine-executable data
+- **Rules** are embedded in the binary as JSON and loaded into the engine at startup; optionally fetched from vidya instead
+- **Sūtras** that aren't rules (saṁjñā, paribhāṣā, adhikāra) live in the embedded rule data (or vidya when connected), not as engine-executable data
 
 ## Flagged ambiguities
 
 - "rule" vs "sūtra" — resolved: **rule** = operational/vidhi sūtra the engine executes; **sūtra** = any Aṣṭādhyāyī entry
 - "ending" — ambiguous between suffix (pratyaya) and final sound of a word. Use **suffix** for the former, avoid "ending"
-- Phoneme data lives in both vidya (canonical) and Pāṇini engine (compiled helpers). Accepted duplication — vidya is source of truth for curation, engine has compiled form for performance
+- Phoneme data lives in the engine as compiled helpers. Vidya can serve as an optional upstream source for curation, but the engine's embedded data is self-sufficient
 

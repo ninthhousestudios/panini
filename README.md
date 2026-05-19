@@ -29,19 +29,13 @@ cargo run
 
 Launches the Iced desktop GUI with IAST-to-Devanagari transliteration, paradigm tables, sandhi tools, and sutra browser.
 
-### HTTP server + web UI
+### HTTP server (MCP + API)
 
 ```sh
 cargo run -- serve
 ```
 
-Starts the HTTP server on `127.0.0.1:4300` (default). Open http://127.0.0.1:4300 in a browser for the web UI.
-
-The web UI has four tabs:
-- **Paradigms** — enter a stem and stem type, get the full declension grid in Devanagari and IAST
-- **Sandhi** — forward (join two words) and reverse (split a combined form) sandhi
-- **Sutras** — browse all loaded sutras with search
-- **Verification** — automated consistency report across all rule templates
+Starts the HTTP server on `127.0.0.1:4300` (default). Exposes the MCP endpoint at `/mcp` and REST API routes at `/api/*`. No web UI — use the desktop GUI for interactive use.
 
 ### MCP server
 

@@ -2,8 +2,6 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use anyhow::Context;
-use axum::http::header;
-use axum::response::Html;
 use axum::routing::{any_service, get, post};
 use clap::Parser;
 use rmcp::ServiceExt;
@@ -253,24 +251,11 @@ async fn serve_http(
         .layer(normalize_accept)
         .merge(api_routes);
 
-    let static_html = include_str!("../static/index.html");
-    let ui_routes = axum::Router::new()
-        .route(
-            "/",
-            get(move || async move {
-                ([(header::CACHE_CONTROL, "no-cache")], Html(static_html))
-            }),
-        )
-        .route(
-            "/health",
-            get(|| async { axum::Json(serde_json::json!({"status": "ok"})) }),
-        );
-
     #[allow(deprecated)]
     let app = if let Some(ref token) = bearer_token {
-        ui_routes.merge(protected.layer(ValidateRequestHeaderLayer::bearer(token)))
+        protected.layer(ValidateRequestHeaderLayer::bearer(token))
     } else {
-        ui_routes.merge(protected)
+        protected
     };
 
     let addr = listener.local_addr()?;
