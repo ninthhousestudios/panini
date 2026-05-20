@@ -290,5 +290,49 @@
       "sutra_position": "08.04.055"
     },
     "statement": "dh + t → ddh (aspiration transfer, khari ca, Aṣṭ. 8.4.55)"
+  },
+  {
+    "params": {
+      "stage": "pre_tin",
+      "rule_type": "consonant_junction",
+      "operation_input": "ds",
+      "operation_output": "ts",
+      "sutra": "8.4.55",
+      "sutra_position": "08.04.055"
+    },
+    "statement": "d → t before s (khari ca, Aṣṭ. 8.4.55)"
+  },
+  {
+    "params": {
+      "stage": "pre_tin",
+      "rule_type": "consonant_junction",
+      "operation_input": "dth",
+      "operation_output": "tth",
+      "sutra": "8.4.55",
+      "sutra_position": "08.04.055"
+    },
+    "statement": "d → t before th (khari ca, Aṣṭ. 8.4.55)"
+  },
+  {
+    "params": {
+      "stage": "pre_tin",
+      "rule_type": "consonant_junction",
+      "operation_input": "dhs",
+      "operation_output": "ts",
+      "sutra": "8.4.55",
+      "sutra_position": "08.04.055"
+    },
+    "statement": "dh → t before s (khari ca, Aṣṭ. 8.4.55)"
+  },
+  {
+    "params": {
+      "stage": "pre_tin",
+      "rule_type": "consonant_junction",
+      "operation_input": "dhth",
+      "operation_output": "tth",
+      "sutra": "8.4.55",
+      "sutra_position": "08.04.055"
+    },
+    "statement": "dh → t before th (khari ca, Aṣṭ. 8.4.55)"
   }
 ]

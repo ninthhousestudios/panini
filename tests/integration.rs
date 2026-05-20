@@ -1018,3 +1018,37 @@ async fn conjugation_gana3_bhii() {
     assert_eq!(derive_conj_gana(&cache, "bhī", "3", "prathama", "dvivacana"), "bibhītaḥ");
     assert_eq!(derive_conj_gana(&cache, "bhī", "3", "prathama", "bahuvacana"), "bibhyati");
 }
+
+// --- Consonant junction coverage (madhyama/uttama) ---
+
+#[tokio::test]
+async fn conjugation_gana2_ad_madhyama() {
+    let cache = build_cache();
+    assert_eq!(derive_conj_gana(&cache, "ad", "2", "madhyama", "ekavacana"), "atsi");
+    assert_eq!(derive_conj_gana(&cache, "ad", "2", "madhyama", "dvivacana"), "atthaḥ");
+    assert_eq!(derive_conj_gana(&cache, "ad", "2", "madhyama", "bahuvacana"), "attha");
+}
+
+#[tokio::test]
+async fn conjugation_gana2_ad_uttama() {
+    let cache = build_cache();
+    assert_eq!(derive_conj_gana(&cache, "ad", "2", "uttama", "ekavacana"), "admi");
+    assert_eq!(derive_conj_gana(&cache, "ad", "2", "uttama", "dvivacana"), "advaḥ");
+    assert_eq!(derive_conj_gana(&cache, "ad", "2", "uttama", "bahuvacana"), "admaḥ");
+}
+
+#[tokio::test]
+async fn conjugation_gana7_rudh_madhyama() {
+    let cache = build_cache();
+    assert_eq!(derive_conj_gana(&cache, "rudh", "7", "madhyama", "ekavacana"), "ruṇatsi");
+    assert_eq!(derive_conj_gana(&cache, "rudh", "7", "madhyama", "dvivacana"), "ruṇtthaḥ");
+    assert_eq!(derive_conj_gana(&cache, "rudh", "7", "madhyama", "bahuvacana"), "ruṇttha");
+}
+
+#[tokio::test]
+async fn conjugation_gana7_rudh_uttama() {
+    let cache = build_cache();
+    assert_eq!(derive_conj_gana(&cache, "rudh", "7", "uttama", "ekavacana"), "ruṇadhmi");
+    assert_eq!(derive_conj_gana(&cache, "rudh", "7", "uttama", "dvivacana"), "ruṇdhvaḥ");
+    assert_eq!(derive_conj_gana(&cache, "rudh", "7", "uttama", "bahuvacana"), "ruṇdhmaḥ");
+}

@@ -235,6 +235,14 @@ pub fn derive_conjugation(
             input_state: format!("{} + {}", current_dhatu, current_tin),
             output_state: format!("{}{}{} + {}", prefix, vikarana, final_c, current_tin),
         });
+    } else if vikarana.is_empty() {
+        trace.push(TraceStep {
+            step: step_num,
+            rule: vik_rule.statement.clone(),
+            rule_ref: sutra_ref(&vik_params.sutra),
+            input_state: format!("{} + {}", current_dhatu, current_tin),
+            output_state: format!("{} + {} (śap → luk)", current_dhatu, current_tin),
+        });
     } else {
         trace.push(TraceStep {
             step: step_num,
@@ -326,8 +334,11 @@ pub fn derive_conjugation(
     // Sub-pass 1: guṇa or vṛddhi (gated by ṅit — 1.1.5)
     // For ṇit vikaraṇas (gaṇa 10): vṛddhi when upadha is dīrgha vowel,
     // guṇa when upadha is laghu vowel, nothing when upadha is consonant.
+    // Gate gaṇa 3 specifically: reduplication creates an abhyāsa vowel that
+    // medial guṇa would incorrectly target. Gaṇa 2 (also empty vikaraṇa)
+    // needs Layer 3 guṇa for vowel-final roots like √i → eti.
     let skip_guna_vrddhi = vikarana_is_nit
-        || vikarana.is_empty()
+        || input.gana == "3"
         || (vikarana_is_nit_marker && !upadha_is_vowel(&current_dhatu));
     if !skip_guna_vrddhi {
         let use_vrddhi = vikarana_is_nit_marker && !is_upadha_laghu(&current_dhatu);
@@ -354,18 +365,17 @@ pub fn derive_conjugation(
                             out
                         );
                         step_num += 1;
+                        let fmt = |d: &str| if vikarana.is_empty() {
+                            format!("{} + {}", d, current_tin)
+                        } else {
+                            format!("{} + {} + {}", d, vikarana, current_tin)
+                        };
                         trace.push(TraceStep {
                             step: step_num,
                             rule: rule.statement.clone(),
                             rule_ref: sutra_ref(&params.sutra),
-                            input_state: format!(
-                                "{} + {} + {}",
-                                old, vikarana, current_tin
-                            ),
-                            output_state: format!(
-                                "{} + {} + {}",
-                                current_dhatu, vikarana, current_tin
-                            ),
+                            input_state: fmt(&old),
+                            output_state: fmt(&current_dhatu),
                         });
                         true
                     } else {
@@ -383,18 +393,17 @@ pub fn derive_conjugation(
                         let old = current_dhatu.clone();
                         current_dhatu = replaced;
                         step_num += 1;
+                        let fmt = |d: &str| if vikarana.is_empty() {
+                            format!("{} + {}", d, current_tin)
+                        } else {
+                            format!("{} + {} + {}", d, vikarana, current_tin)
+                        };
                         trace.push(TraceStep {
                             step: step_num,
                             rule: rule.statement.clone(),
                             rule_ref: sutra_ref(&params.sutra),
-                            input_state: format!(
-                                "{} + {} + {}",
-                                old, vikarana, current_tin
-                            ),
-                            output_state: format!(
-                                "{} + {} + {}",
-                                current_dhatu, vikarana, current_tin
-                            ),
+                            input_state: fmt(&old),
+                            output_state: fmt(&current_dhatu),
                         });
                         true
                     } else {
@@ -427,15 +436,17 @@ pub fn derive_conjugation(
                     out
                 );
                 step_num += 1;
+                let fmt = |d: &str| if vikarana.is_empty() {
+                    format!("{} + {}", d, current_tin)
+                } else {
+                    format!("{} + {} + {}", d, vikarana, current_tin)
+                };
                 trace.push(TraceStep {
                     step: step_num,
                     rule: rule.statement.clone(),
                     rule_ref: sutra_ref(&params.sutra),
-                    input_state: format!("{} + {} + {}", old, vikarana, current_tin),
-                    output_state: format!(
-                        "{} + {} + {}",
-                        current_dhatu, vikarana, current_tin
-                    ),
+                    input_state: fmt(&old),
+                    output_state: fmt(&current_dhatu),
                 });
                 break;
             }
