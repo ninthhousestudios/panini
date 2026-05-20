@@ -13,6 +13,18 @@
   },
   {
     "params": {
+      "gana": "2",
+      "vikarana_name": "luk",
+      "suffix": "",
+      "it_markers": ["ś", "p"],
+      "lakara_type": "sārvadhātuka",
+      "sutra": "2.4.72",
+      "sutra_position": "02.04.072"
+    },
+    "statement": "adādi (class 2): śap → luk (adiprabhṛtibhyaḥ śapaḥ, Aṣṭ. 2.4.72)"
+  },
+  {
+    "params": {
       "gana": "4",
       "vikarana_name": "śyan",
       "suffix": "ya",

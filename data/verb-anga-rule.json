@@ -244,5 +244,16 @@
       "sutra_position": "03.01.081"
     },
     "statement": "śnā → n before vowel-initial tiṅ (kryādi, Aṣṭ. 3.1.81)"
+  },
+  {
+    "params": {
+      "stage": "pre_tin",
+      "rule_type": "consonant_junction",
+      "operation_input": "dt",
+      "operation_output": "tt",
+      "sutra": "8.4.55",
+      "sutra_position": "08.04.055"
+    },
+    "statement": "d → t before t (khari ca, Aṣṭ. 8.4.55)"
   }
 ]

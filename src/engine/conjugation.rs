@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
 use super::declension::TripadiRule;
-use super::phoneme::{VOWEL_PHONEMES, first_phoneme, tokenize};
+use super::phoneme::{VOWEL_PHONEMES, first_phoneme, last_phoneme, tokenize};
 use super::{DeriveResult, TraceStep, rule_type_priority};
 use crate::error::{PaniniError, Result};
 use crate::rule_cache::CachedRule;
@@ -603,6 +603,39 @@ pub fn derive_conjugation(
                     input_state: format!("{} + {}", old_anga, current_tin),
                     output_state: format!("{} + {}", anga, current_tin),
                 });
+            }
+        }
+    }
+
+    // Sub-pass: consonant junction sandhi (8.4.55 khari ca)
+    if !current_tin.is_empty() {
+        for (params, rule) in parsed_anga
+            .iter()
+            .filter(|(p, _)| p.stage == "pre_tin" && p.rule_type == "consonant_junction")
+        {
+            if let (Some(op_in), Some(op_out)) =
+                (&params.operation_input, &params.operation_output)
+            {
+                let anga_final = last_phoneme(&anga).unwrap_or("").to_string();
+                let tin_initial = first_phoneme(&current_tin).unwrap_or("").to_string();
+                let junction = format!("{}{}", anga_final, tin_initial);
+                if junction == *op_in {
+                    let old_state = format!("{} + {}", anga, current_tin);
+                    let anga_prefix = &anga[..anga.len() - anga_final.len()];
+                    let tin_rest = &current_tin[tin_initial.len()..];
+                    let combined = format!("{}{}{}", anga_prefix, op_out, tin_rest);
+                    step_num += 1;
+                    trace.push(TraceStep {
+                        step: step_num,
+                        rule: rule.statement.clone(),
+                        rule_ref: sutra_ref(&params.sutra),
+                        input_state: old_state,
+                        output_state: combined.clone(),
+                    });
+                    anga = combined;
+                    current_tin = String::new();
+                    break;
+                }
             }
         }
     }

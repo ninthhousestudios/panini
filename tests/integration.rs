@@ -959,3 +959,19 @@ async fn conjugation_gana9_krii() {
     // non-pit vowel-initial → n; ṇatva
     assert_eq!(derive_conj_gana(&cache, "krī", "9", "prathama", "bahuvacana"), "krīṇanti");
 }
+
+// --- Gaṇa 2 (adādi/luk) ---
+
+#[tokio::test]
+async fn conjugation_gana2_as() {
+    let cache = build_cache();
+    assert_eq!(derive_conj_gana(&cache, "as", "2", "prathama", "ekavacana"), "asti");
+}
+
+#[tokio::test]
+async fn conjugation_gana2_ad() {
+    let cache = build_cache();
+    assert_eq!(derive_conj_gana(&cache, "ad", "2", "prathama", "ekavacana"), "atti");
+    assert_eq!(derive_conj_gana(&cache, "ad", "2", "prathama", "dvivacana"), "attaḥ");
+    assert_eq!(derive_conj_gana(&cache, "ad", "2", "prathama", "bahuvacana"), "adanti");
+}

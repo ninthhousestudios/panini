@@ -271,6 +271,7 @@ Same tokenizer as declension (`src/engine/phoneme.rs`). Key functions used by co
 | Gaṇa | Vikaraṇa | Suffix | Mechanism |
 |---|---|---|---|
 | 1 (bhvādi) | śap | a | guṇa + semivowel + dīrgha + coalescence |
+| 2 (adādi) | luk | (empty) | śap deleted (2.4.72); consonant junction sandhi (8.4.55) |
 | 4 (divādi) | śyan | ya | ṅit blocks guṇa |
 | 5 (svādi) | śnu | nu | ṅit blocks pre-vik guṇa; pre-tiṅ guṇa u→o (pit only), yaṇ u→v |
 | 6 (tudādi) | śa | a | ṅit blocks guṇa |
@@ -284,7 +285,6 @@ Lakāra: laṭ only. Pada: parasmaipada only.
 
 | Gaṇa | Why deferred |
 |---|---|
-| 2 (adādi) | Zero vikaraṇa (luk) — needs architectural change to allow no vikaraṇa |
 | 3 (juhotyādi) | Reduplication (abhyāsa) — needs reduplication engine |
 | 7 (rudhādi) | Infixed vikaraṇa (nasal infix before final consonant) — needs infix mechanism |
 
