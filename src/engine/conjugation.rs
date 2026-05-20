@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
 use super::declension::TripadiRule;
-use super::phoneme::{VOWEL_PHONEMES, tokenize};
+use super::phoneme::{VOWEL_PHONEMES, first_phoneme, tokenize};
 use super::{DeriveResult, TraceStep, rule_type_priority};
 use crate::error::{PaniniError, Result};
 use crate::rule_cache::CachedRule;
@@ -25,15 +25,21 @@ struct TinSuffix {
     pratyaya_name: String,
     suffix: String,
     #[serde(default)]
+    is_pit: bool,
+    #[serde(default)]
     sutra: String,
 }
 
 #[derive(Deserialize)]
 struct VikaranaRule {
     gana: String,
+    #[serde(default)]
+    vikarana_name: String,
     suffix: String,
     #[serde(default)]
     lakara_type: Option<String>,
+    #[serde(default)]
+    it_markers: Vec<String>,
     #[serde(default)]
     sutra: String,
 }
@@ -67,6 +73,14 @@ struct VerbAngaRule {
     #[serde(default)]
     operation_output: Option<String>,
     #[serde(default)]
+    condition_anga_final: Option<String>,
+    #[serde(default)]
+    condition_vikarana: Option<String>,
+    #[serde(default)]
+    condition_suffix_pit: Option<bool>,
+    #[serde(default)]
+    condition_suffix_initial_type: Option<String>,
+    #[serde(default)]
     sutra: String,
 }
 
@@ -86,6 +100,23 @@ fn is_yan_initial(suffix: &str) -> bool {
 
 fn is_vowel(phoneme: &str) -> bool {
     VOWEL_PHONEMES.contains(&phoneme)
+}
+
+fn upadha_is_vowel(dhatu: &str) -> bool {
+    let tokens = tokenize(dhatu);
+    if tokens.len() < 2 {
+        return false;
+    }
+    is_vowel(tokens[tokens.len() - 2])
+}
+
+fn is_upadha_laghu(dhatu: &str) -> bool {
+    let tokens = tokenize(dhatu);
+    if tokens.len() < 2 {
+        return false;
+    }
+    let upadha = tokens[tokens.len() - 2];
+    matches!(upadha, "a" | "i" | "u" | "ṛ" | "ḷ")
 }
 
 fn replace_medial_vowel(dhatu: &str, from: &str, to: &str) -> Option<String> {
@@ -181,6 +212,14 @@ pub fn derive_conjugation(
     let vikarana = vik_params.suffix.clone();
     let mut current_dhatu = input.dhatu.clone();
 
+    // Compute ṅit status (1.2.4 + 1.1.5)
+    let vikarana_is_nit = {
+        let is_sarvadhatuka = vik_params.lakara_type.as_deref() == Some("sārvadhātuka");
+        let is_pit = vik_params.it_markers.iter().any(|m| m == "p");
+        is_sarvadhatuka && !is_pit
+    };
+    let vikarana_is_nit_marker = vik_params.it_markers.iter().any(|m| m == "ṇ");
+
     step_num += 1;
     trace.push(TraceStep {
         step: step_num,
@@ -200,10 +239,18 @@ pub fn derive_conjugation(
         })
         .collect();
 
-    // Sub-pass 1: guṇa
+    // Sub-pass 1: guṇa or vṛddhi (gated by ṅit — 1.1.5)
+    // For ṇit vikaraṇas (gaṇa 10): vṛddhi when upadha is dīrgha vowel,
+    // guṇa when upadha is laghu vowel, nothing when upadha is consonant.
+    let skip_guna_vrddhi = vikarana_is_nit
+        || (vikarana_is_nit_marker && !upadha_is_vowel(&current_dhatu));
+    if !skip_guna_vrddhi {
+        let use_vrddhi = vikarana_is_nit_marker && !is_upadha_laghu(&current_dhatu);
+        let rule_type_filter = if use_vrddhi { "vrddhi" } else { "guna" };
+
     for (params, rule) in parsed_anga
         .iter()
-        .filter(|(p, _)| p.stage == "pre_vikarana" && p.rule_type == "guna")
+        .filter(|(p, _)| p.stage == "pre_vikarana" && p.rule_type == rule_type_filter)
     {
         let pos = match params.position.as_deref() {
             Some(p) => p,
@@ -309,9 +356,13 @@ pub fn derive_conjugation(
             }
         }
     }
+    } // end if !skip_guna_vrddhi
 
     // Form the aṅga (dhātu + vikaraṇa)
     let mut anga = format!("{}{}", current_dhatu, vikarana);
+
+    let vikarana_name = vik_params.vikarana_name.clone();
+    let tin_is_pit = tin_params.is_pit;
 
     // --- Layer 4: Pre-tiṅ operations ---
     // dīrgha: a → ā before yaṅ-initial tiṅ
@@ -376,6 +427,139 @@ pub fn derive_conjugation(
                 anga = combined;
                 current_tin = String::new();
                 break;
+            }
+        }
+    }
+
+    // Sub-pass: guṇa of aṅga-final vowel before consonant-initial pit tiṅ
+    // Non-pit sārvadhātuka tiṅ is ṅit (1.2.4), which blocks guṇa (1.1.5)
+    if !current_tin.is_empty() && tin_is_pit {
+        for (params, rule) in parsed_anga
+            .iter()
+            .filter(|(p, _)| p.stage == "pre_tin" && p.rule_type == "guna_anga_final")
+        {
+            if let (Some(cond), Some(inp), Some(out)) =
+                (&params.condition_anga_final, &params.input, &params.output)
+            {
+                let tin_initial_is_consonant = first_phoneme(&current_tin)
+                    .map_or(false, |ph| !is_vowel(ph));
+                if anga.ends_with(cond.as_str()) && tin_initial_is_consonant {
+                    let old_anga = anga.clone();
+                    anga = format!("{}{}", &anga[..anga.len() - inp.len()], out);
+                    step_num += 1;
+                    trace.push(TraceStep {
+                        step: step_num,
+                        rule: rule.statement.clone(),
+                        rule_ref: sutra_ref(&params.sutra),
+                        input_state: format!("{} + {}", old_anga, current_tin),
+                        output_state: format!("{} + {}", anga, current_tin),
+                    });
+                    break;
+                }
+            }
+        }
+    }
+
+    // Sub-pass: yaṇ at aṅga-tiṅ junction (u → v before vowel)
+    if !current_tin.is_empty() {
+        for (params, rule) in parsed_anga
+            .iter()
+            .filter(|(p, _)| p.stage == "pre_tin" && p.rule_type == "yan_junction")
+        {
+            if let (Some(cond), Some(inp), Some(out)) =
+                (&params.condition_anga_final, &params.input, &params.output)
+            {
+                let tin_initial_is_vowel = first_phoneme(&current_tin)
+                    .map_or(false, |ph| is_vowel(ph));
+                if anga.ends_with(cond.as_str()) && tin_initial_is_vowel {
+                    let old_anga = anga.clone();
+                    anga = format!("{}{}", &anga[..anga.len() - inp.len()], out);
+                    step_num += 1;
+                    trace.push(TraceStep {
+                        step: step_num,
+                        rule: rule.statement.clone(),
+                        rule_ref: sutra_ref(&params.sutra),
+                        input_state: format!("{} + {}", old_anga, current_tin),
+                        output_state: format!("{} + {}", anga, current_tin),
+                    });
+                    break;
+                }
+            }
+        }
+    }
+
+    // Sub-pass: śnā alternation (nā/nī/n for gaṇa 9)
+    if !current_tin.is_empty() {
+        for (params, rule) in parsed_anga
+            .iter()
+            .filter(|(p, _)| p.stage == "pre_tin" && p.rule_type == "sna_alternation")
+        {
+            if let Some(ref vik_name) = params.condition_vikarana {
+                if *vik_name != vikarana_name {
+                    continue;
+                }
+            }
+            let pit_match = match params.condition_suffix_pit {
+                Some(true) => tin_is_pit,
+                Some(false) => !tin_is_pit,
+                None => true,
+            };
+            if !pit_match {
+                continue;
+            }
+            if let Some(ref suf_type) = params.condition_suffix_initial_type {
+                let tin_initial_is_vowel = first_phoneme(&current_tin)
+                    .map_or(false, |ph| is_vowel(ph));
+                let type_match = match suf_type.as_str() {
+                    "consonant" => !tin_initial_is_vowel,
+                    "vowel" => tin_initial_is_vowel,
+                    _ => true,
+                };
+                if !type_match {
+                    continue;
+                }
+            }
+            if let (Some(inp), Some(out)) = (&params.input, &params.output) {
+                if anga.ends_with(inp.as_str()) {
+                    let old_anga = anga.clone();
+                    anga = format!("{}{}", &anga[..anga.len() - inp.len()], out);
+                    step_num += 1;
+                    trace.push(TraceStep {
+                        step: step_num,
+                        rule: rule.statement.clone(),
+                        rule_ref: sutra_ref(&params.sutra),
+                        input_state: format!("{} + {}", old_anga, current_tin),
+                        output_state: format!("{} + {}", anga, current_tin),
+                    });
+                    break;
+                }
+            }
+        }
+    }
+
+    // ṇatva: n → ṇ in vikaraṇa-derived portion when dhātu has r/ṣ/ṛ/ṝ trigger (8.4.2)
+    if vikarana.starts_with('n') {
+        let triggers_natva = tokenize(&current_dhatu)
+            .iter()
+            .any(|ph| matches!(*ph, "ṛ" | "ṝ" | "r" | "ṣ"));
+        if triggers_natva {
+            let dhatu_len = current_dhatu.len();
+            let vik_portion = &anga[dhatu_len..];
+            if vik_portion.starts_with('n') {
+                let old_anga = anga.clone();
+                anga = format!(
+                    "{}{}",
+                    &anga[..dhatu_len],
+                    vik_portion.replacen("n", "ṇ", 1)
+                );
+                step_num += 1;
+                trace.push(TraceStep {
+                    step: step_num,
+                    rule: "n → ṇ (ṇatva, aṭkupvāṅ... Aṣṭ. 8.4.2)".into(),
+                    rule_ref: Some("8.4.2".into()),
+                    input_state: format!("{} + {}", old_anga, current_tin),
+                    output_state: format!("{} + {}", anga, current_tin),
+                });
             }
         }
     }
@@ -454,6 +638,7 @@ mod tests {
             json!({
                 "lakara": "laṭ", "purusha": "prathama", "vacana": "ekavacana",
                 "pada": "parasmaipada", "pratyaya_name": "tip", "suffix": "ti",
+                "is_pit": true,
                 "sutra": "3.4.78", "sutra_position": "03.04.078"
             }),
             "prathama ekavacana: tip → ti",
@@ -464,6 +649,8 @@ mod tests {
         vec![make_rule(
             json!({
                 "gana": "1", "vikarana_name": "śap", "suffix": "a",
+                "it_markers": ["ś", "p"],
+                "lakara_type": "sārvadhātuka",
                 "sutra": "3.1.68", "sutra_position": "03.01.068"
             }),
             "class 1: śap → a",
@@ -710,5 +897,67 @@ mod tests {
             },
         );
         assert!(result.is_err(), "liṭ (ārdhadhātuka) should not match sārvadhātuka vikaraṇa");
+    }
+
+    #[test]
+    fn sap_it_markers_deserialize() {
+        let json = json!({
+            "gana": "1", "vikarana_name": "śap", "suffix": "a",
+            "it_markers": ["ś", "p"],
+            "lakara_type": "sārvadhātuka",
+            "sutra": "3.1.68"
+        });
+        let rule: VikaranaRule = serde_json::from_value(json).unwrap();
+        assert_eq!(rule.it_markers, vec!["ś", "p"]);
+        let is_sarvadhatuka = rule.lakara_type.as_deref() == Some("sārvadhātuka");
+        let is_pit = rule.it_markers.iter().any(|m| m == "p");
+        let is_nit = is_sarvadhatuka && !is_pit;
+        assert!(!is_nit, "śap is pit, so should NOT be ṅit");
+    }
+
+    #[test]
+    fn nit_blocks_guna() {
+        let vik = vec![make_rule(
+            json!({
+                "gana": "4", "vikarana_name": "śyan", "suffix": "ya",
+                "it_markers": ["ś", "n"],
+                "lakara_type": "sārvadhātuka",
+                "sutra": "3.1.69", "sutra_position": "03.01.069"
+            }),
+            "class 4: śyan → ya",
+        )];
+        let anga = vec![make_rule(
+            json!({
+                "stage": "pre_vikarana", "rule_type": "guna",
+                "condition_dhatu_vowel": "u", "position": "dhatu_medial",
+                "input": "u", "output": "o",
+                "sutra": "7.3.84", "sutra_position": "07.03.084"
+            }),
+            "u → o (medial guṇa)",
+        )];
+        let result = derive_conjugation(
+            &fixture_tin(),
+            &vik,
+            &anga,
+            &fixture_tripadi(),
+            ConjugationInput {
+                dhatu: "div".into(),
+                gana: "4".into(),
+                lakara: "laṭ".into(),
+                pada: "parasmaipada".into(),
+                purusha: "prathama".into(),
+                vacana: "ekavacana".into(),
+            },
+        )
+        .unwrap();
+        assert_eq!(result.output["form"], "divyati",
+            "gaṇa 4 śyan is ṅit — guṇa must be blocked");
+    }
+
+    #[test]
+    fn is_upadha_laghu_check() {
+        assert!(is_upadha_laghu("cur"), "upadha 'u' is laghu");
+        assert!(is_upadha_laghu("tud"), "upadha 'u' is laghu");
+        assert!(!is_upadha_laghu("cint"), "upadha 'n' is consonant, not laghu");
     }
 }

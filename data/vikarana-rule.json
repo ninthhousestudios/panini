@@ -4,10 +4,82 @@
       "gana": "1",
       "vikarana_name": "śap",
       "suffix": "a",
+      "it_markers": ["ś", "p"],
       "lakara_type": "sārvadhātuka",
       "sutra": "3.1.68",
       "sutra_position": "03.01.068"
     },
     "statement": "bhvādi (class 1): śap vikaraṇa → a (kartari śap, Aṣṭ. 3.1.68)"
+  },
+  {
+    "params": {
+      "gana": "4",
+      "vikarana_name": "śyan",
+      "suffix": "ya",
+      "it_markers": ["ś", "n"],
+      "lakara_type": "sārvadhātuka",
+      "sutra": "3.1.69",
+      "sutra_position": "03.01.069"
+    },
+    "statement": "divādi (class 4): śyan vikaraṇa → ya (divādibhyaḥ śyan, Aṣṭ. 3.1.69)"
+  },
+  {
+    "params": {
+      "gana": "5",
+      "vikarana_name": "śnu",
+      "suffix": "nu",
+      "it_markers": ["ś"],
+      "lakara_type": "sārvadhātuka",
+      "sutra": "3.1.73",
+      "sutra_position": "03.01.073"
+    },
+    "statement": "svādi (class 5): śnu vikaraṇa → nu (svādibhyaḥ śnuḥ, Aṣṭ. 3.1.73)"
+  },
+  {
+    "params": {
+      "gana": "6",
+      "vikarana_name": "śa",
+      "suffix": "a",
+      "it_markers": ["ś"],
+      "lakara_type": "sārvadhātuka",
+      "sutra": "3.1.77",
+      "sutra_position": "03.01.077"
+    },
+    "statement": "tudādi (class 6): śa vikaraṇa → a (tudādibhyaḥ śaḥ, Aṣṭ. 3.1.77)"
+  },
+  {
+    "params": {
+      "gana": "8",
+      "vikarana_name": "u",
+      "suffix": "u",
+      "it_markers": [],
+      "lakara_type": "sārvadhātuka",
+      "sutra": "3.1.79",
+      "sutra_position": "03.01.079"
+    },
+    "statement": "tanādi (class 8): u vikaraṇa (tanādikṛñbhya uḥ, Aṣṭ. 3.1.79)"
+  },
+  {
+    "params": {
+      "gana": "9",
+      "vikarana_name": "śnā",
+      "suffix": "nā",
+      "it_markers": ["ś"],
+      "lakara_type": "sārvadhātuka",
+      "sutra": "3.1.81",
+      "sutra_position": "03.01.081"
+    },
+    "statement": "kryādi (class 9): śnā vikaraṇa → nā (kryādibhyo śnā, Aṣṭ. 3.1.81)"
+  },
+  {
+    "params": {
+      "gana": "10",
+      "vikarana_name": "ṇic",
+      "suffix": "aya",
+      "it_markers": ["ṇ", "c"],
+      "sutra": "3.1.25",
+      "sutra_position": "03.01.025"
+    },
+    "statement": "curādi (class 10): ṇic vikaraṇa → aya (Aṣṭ. 3.1.25)"
   }
 ]

@@ -673,6 +673,16 @@ async fn deva_paradigm_unchanged() {
 // --- Conjugation tests ---
 
 fn derive_conj(cache: &RuleCache, dhatu: &str, purusha: &str, vacana: &str) -> String {
+    derive_conj_gana(cache, dhatu, "1", purusha, vacana)
+}
+
+fn derive_conj_gana(
+    cache: &RuleCache,
+    dhatu: &str,
+    gana: &str,
+    purusha: &str,
+    vacana: &str,
+) -> String {
     let result = derive_conjugation(
         cache.get_rules("tin_suffix"),
         cache.get_rules("vikarana_rule"),
@@ -680,7 +690,7 @@ fn derive_conj(cache: &RuleCache, dhatu: &str, purusha: &str, vacana: &str) -> S
         cache.get_rules("tripadi_rule"),
         ConjugationInput {
             dhatu: dhatu.into(),
-            gana: "1".into(),
+            gana: gana.into(),
             lakara: "laṭ".into(),
             pada: "parasmaipada".into(),
             purusha: purusha.into(),
@@ -842,4 +852,101 @@ async fn conjugation_vikarana_rejects_ardhadhatuka() {
         },
     );
     assert!(result.is_err(), "liṭ should not find sārvadhātuka vikaraṇa");
+}
+
+// --- Gaṇa 4 (divādi/śyan) ---
+
+#[tokio::test]
+async fn conjugation_gana4_div() {
+    let cache = build_cache();
+    assert_eq!(derive_conj_gana(&cache, "div", "4", "prathama", "ekavacana"), "divyati");
+    assert_eq!(derive_conj_gana(&cache, "div", "4", "prathama", "dvivacana"), "divyataḥ");
+    assert_eq!(derive_conj_gana(&cache, "div", "4", "prathama", "bahuvacana"), "divyanti");
+}
+
+#[tokio::test]
+async fn conjugation_gana4_nrt_no_guna() {
+    let cache = build_cache();
+    assert_eq!(
+        derive_conj_gana(&cache, "nṛt", "4", "prathama", "ekavacana"),
+        "nṛtyati",
+        "gaṇa 4 ṅit should block guṇa on ṛ"
+    );
+}
+
+// --- Gaṇa 6 (tudādi/śa) ---
+
+#[tokio::test]
+async fn conjugation_gana6_tud() {
+    let cache = build_cache();
+    assert_eq!(
+        derive_conj_gana(&cache, "tud", "6", "prathama", "ekavacana"),
+        "tudati",
+        "gaṇa 6 ṅit should block medial guṇa"
+    );
+}
+
+#[tokio::test]
+async fn conjugation_gana6_vis() {
+    let cache = build_cache();
+    assert_eq!(
+        derive_conj_gana(&cache, "viś", "6", "prathama", "ekavacana"),
+        "viśati",
+        "gaṇa 6 ṅit should block medial guṇa on viś"
+    );
+}
+
+// --- Gaṇa 10 (curādi/ṇic) ---
+
+#[tokio::test]
+async fn conjugation_gana10_cur_guna() {
+    let cache = build_cache();
+    assert_eq!(
+        derive_conj_gana(&cache, "cur", "10", "prathama", "ekavacana"),
+        "corayati",
+        "gaṇa 10 laghu upadha should get guṇa"
+    );
+}
+
+#[tokio::test]
+async fn conjugation_gana10_cint_no_guna() {
+    let cache = build_cache();
+    assert_eq!(
+        derive_conj_gana(&cache, "cint", "10", "prathama", "ekavacana"),
+        "cintayati",
+        "gaṇa 10 consonant upadha — no guṇa or vṛddhi"
+    );
+}
+
+// --- Gaṇa 5 (svādi/śnu) ---
+
+#[tokio::test]
+async fn conjugation_gana5_su() {
+    let cache = build_cache();
+    assert_eq!(derive_conj_gana(&cache, "su", "5", "prathama", "ekavacana"), "sunoti");
+    assert_eq!(derive_conj_gana(&cache, "su", "5", "prathama", "dvivacana"), "sunutaḥ");
+    assert_eq!(derive_conj_gana(&cache, "su", "5", "prathama", "bahuvacana"), "sunvanti");
+}
+
+// --- Gaṇa 8 (tanādi/u) ---
+
+#[tokio::test]
+async fn conjugation_gana8_tan() {
+    let cache = build_cache();
+    assert_eq!(derive_conj_gana(&cache, "tan", "8", "prathama", "ekavacana"), "tanoti");
+    assert_eq!(derive_conj_gana(&cache, "tan", "8", "prathama", "dvivacana"), "tanutaḥ");
+    assert_eq!(derive_conj_gana(&cache, "tan", "8", "prathama", "bahuvacana"), "tanvanti");
+}
+
+// --- Gaṇa 9 (kryādi/śnā) ---
+
+#[tokio::test]
+async fn conjugation_gana9_krii() {
+    let cache = build_cache();
+    // pit tiṅ → nā; ṇatva: n→ṇ after ī
+    assert_eq!(derive_conj_gana(&cache, "krī", "9", "prathama", "ekavacana"), "krīṇāti");
+    // non-pit consonant-initial → nī; ṇatva
+    assert_eq!(derive_conj_gana(&cache, "krī", "9", "prathama", "dvivacana"), "krīṇītaḥ");
+    // non-pit vowel-initial → n; ṇatva
+    assert_eq!(derive_conj_gana(&cache, "krī", "9", "prathama", "bahuvacana"), "krīṇanti");
 }

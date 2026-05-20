@@ -54,6 +54,84 @@
   {
     "params": {
       "stage": "pre_vikarana",
+      "rule_type": "vrddhi",
+      "condition_dhatu_final": "ū",
+      "position": "dhatu_final",
+      "input": "ū",
+      "output": "au",
+      "sutra": "7.2.115",
+      "sutra_position": "07.02.115"
+    },
+    "statement": "ū → au (vṛddhi) before ṇit (acaḥ ñṇiti, Aṣṭ. 7.2.115)"
+  },
+  {
+    "params": {
+      "stage": "pre_vikarana",
+      "rule_type": "vrddhi",
+      "condition_dhatu_final": "ī",
+      "position": "dhatu_final",
+      "input": "ī",
+      "output": "ai",
+      "sutra": "7.2.115",
+      "sutra_position": "07.02.115"
+    },
+    "statement": "ī → ai (vṛddhi) before ṇit (acaḥ ñṇiti, Aṣṭ. 7.2.115)"
+  },
+  {
+    "params": {
+      "stage": "pre_vikarana",
+      "rule_type": "vrddhi",
+      "condition_dhatu_final": "i",
+      "position": "dhatu_final",
+      "input": "i",
+      "output": "ai",
+      "sutra": "7.2.115",
+      "sutra_position": "07.02.115"
+    },
+    "statement": "i → ai (vṛddhi) before ṇit (acaḥ ñṇiti, Aṣṭ. 7.2.115)"
+  },
+  {
+    "params": {
+      "stage": "pre_vikarana",
+      "rule_type": "vrddhi",
+      "condition_dhatu_final": "ṛ",
+      "position": "dhatu_final",
+      "input": "ṛ",
+      "output": "ār",
+      "sutra": "7.2.115",
+      "sutra_position": "07.02.115"
+    },
+    "statement": "ṛ → ār (vṛddhi) before ṇit (acaḥ ñṇiti, Aṣṭ. 7.2.115)"
+  },
+  {
+    "params": {
+      "stage": "pre_vikarana",
+      "rule_type": "vrddhi",
+      "condition_dhatu_vowel": "u",
+      "position": "dhatu_medial",
+      "input": "u",
+      "output": "au",
+      "sutra": "7.2.115",
+      "sutra_position": "07.02.115"
+    },
+    "statement": "u → au (vṛddhi, medial) before ṇit (acaḥ ñṇiti, Aṣṭ. 7.2.115)"
+  },
+  {
+    "params": {
+      "stage": "pre_vikarana",
+      "rule_type": "vrddhi",
+      "condition_dhatu_vowel": "i",
+      "position": "dhatu_medial",
+      "input": "i",
+      "output": "ai",
+      "sutra": "7.2.115",
+      "sutra_position": "07.02.115"
+    },
+    "statement": "i → ai (vṛddhi, medial) before ṇit (acaḥ ñṇiti, Aṣṭ. 7.2.115)"
+  },
+  {
+    "params": {
+      "stage": "pre_vikarana",
       "rule_type": "semivowel",
       "condition_dhatu_final": "o",
       "position": "dhatu_final",
@@ -101,5 +179,70 @@
       "sutra_position": "06.01.097"
     },
     "statement": "a + a → a at aṅga-tiṅ junction (ato guṇe, Aṣṭ. 6.1.97)"
+  },
+  {
+    "params": {
+      "stage": "pre_tin",
+      "rule_type": "guna_anga_final",
+      "condition_anga_final": "u",
+      "input": "u",
+      "output": "o",
+      "sutra": "7.3.84",
+      "sutra_position": "07.03.084"
+    },
+    "statement": "u → o (guṇa) at aṅga-final before consonant-initial tiṅ (sārvaddhātukārdhadhātukayoḥ, Aṣṭ. 7.3.84)"
+  },
+  {
+    "params": {
+      "stage": "pre_tin",
+      "rule_type": "yan_junction",
+      "condition_anga_final": "u",
+      "input": "u",
+      "output": "v",
+      "sutra": "6.1.77",
+      "sutra_position": "06.01.077"
+    },
+    "statement": "u → v before vowel-initial tiṅ (yaṇ, ikaḥ yaṇ aci, Aṣṭ. 6.1.77)"
+  },
+  {
+    "params": {
+      "stage": "pre_tin",
+      "rule_type": "sna_alternation",
+      "condition_vikarana": "śnā",
+      "condition_suffix_pit": true,
+      "input": "nā",
+      "output": "nā",
+      "sutra": "3.1.81",
+      "sutra_position": "03.01.081"
+    },
+    "statement": "śnā → nā before pit tiṅ (kryādi, Aṣṭ. 3.1.81)"
+  },
+  {
+    "params": {
+      "stage": "pre_tin",
+      "rule_type": "sna_alternation",
+      "condition_vikarana": "śnā",
+      "condition_suffix_pit": false,
+      "condition_suffix_initial_type": "consonant",
+      "input": "nā",
+      "output": "nī",
+      "sutra": "3.1.81",
+      "sutra_position": "03.01.081"
+    },
+    "statement": "śnā → nī before non-pit consonant-initial tiṅ (kryādi, Aṣṭ. 3.1.81)"
+  },
+  {
+    "params": {
+      "stage": "pre_tin",
+      "rule_type": "sna_alternation",
+      "condition_vikarana": "śnā",
+      "condition_suffix_pit": false,
+      "condition_suffix_initial_type": "vowel",
+      "input": "nā",
+      "output": "n",
+      "sutra": "3.1.81",
+      "sutra_position": "03.01.081"
+    },
+    "statement": "śnā → n before vowel-initial tiṅ (kryādi, Aṣṭ. 3.1.81)"
   }
 ]
