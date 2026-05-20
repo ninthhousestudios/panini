@@ -696,6 +696,77 @@ pub fn derive_conjugation(
         }
     }
 
+    // ā-lopa: abhyasta (gaṇa 3) stems ending in ā, before non-pit tiṅ (6.4.64)
+    // dadhā + tas → dadh + tas; dadhā + ati → dadh + ati
+    if !current_tin.is_empty() && input.gana == "3" && !tin_is_pit && anga.ends_with("ā") {
+        let old_state = format!("{} + {}", anga, current_tin);
+        anga = anga[..anga.len() - "ā".len()].to_string();
+        step_num += 1;
+        trace.push(TraceStep {
+            step: step_num,
+            rule: "ā → lopa in abhyasta before ṅit sārvadhātuka (Aṣṭ. 6.4.64)".into(),
+            rule_ref: Some("6.4.64".into()),
+            input_state: old_state,
+            output_state: format!("{} + {}", anga, current_tin),
+        });
+
+        // When ā-lopa creates a voiced-aspirate + voiceless junction (e.g. dadh + tas),
+        // 8.4.55 devoices the aspirate (dh → t) and the lost aspiration displaces to
+        // the initial consonant of the stem: dadh + tas → dhat + tas → dhattaḥ
+        let anga_final_ph = last_phoneme(&anga).unwrap_or("").to_string();
+        let tin_initial_ph = first_phoneme(&current_tin).unwrap_or("").to_string();
+        let car = match anga_final_ph.as_str() {
+            "gh" => Some("k"),
+            "jh" => Some("c"),
+            "ḍh" => Some("ṭ"),
+            "dh" => Some("t"),
+            "bh" => Some("p"),
+            _ => None,
+        };
+        let is_khar = matches!(
+            tin_initial_ph.as_str(),
+            "k" | "kh" | "c" | "ch" | "ṭ" | "ṭh" | "t" | "th" | "p" | "ph"
+                | "ś" | "ṣ" | "s"
+        );
+        if let Some(devoiced) = car {
+            if is_khar {
+                let old_state = format!("{} + {}", anga, current_tin);
+                let anga_prefix = &anga[..anga.len() - anga_final_ph.len()];
+                let first_ph = first_phoneme(anga_prefix).unwrap_or("").to_string();
+                let aspirated = match first_ph.as_str() {
+                    "k" => "kh",
+                    "g" => "gh",
+                    "c" => "ch",
+                    "j" => "jh",
+                    "ṭ" => "ṭh",
+                    "ḍ" => "ḍh",
+                    "t" => "th",
+                    "d" => "dh",
+                    "p" => "ph",
+                    "b" => "bh",
+                    other => other,
+                };
+                let new_prefix =
+                    format!("{}{}", aspirated, &anga_prefix[first_ph.len()..]);
+                let combined =
+                    format!("{}{}{}", new_prefix, devoiced, current_tin);
+                step_num += 1;
+                trace.push(TraceStep {
+                    step: step_num,
+                    rule: format!(
+                        "{} → {} (khari ca) + aspiration → {} (Aṣṭ. 8.4.55)",
+                        anga_final_ph, devoiced, aspirated
+                    ),
+                    rule_ref: Some("8.4.55".into()),
+                    input_state: old_state,
+                    output_state: combined.clone(),
+                });
+                anga = combined;
+                current_tin = String::new();
+            }
+        }
+    }
+
     // ṇatva: n → ṇ in vikaraṇa-derived portion when dhātu has r/ṣ/ṛ/ṝ trigger (8.4.2)
     if vikarana.starts_with('n') {
         let triggers_natva = tokenize(&anga[..vikarana_byte_offset])

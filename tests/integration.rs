@@ -1007,6 +1007,8 @@ async fn conjugation_gana3_hu() {
 async fn conjugation_gana3_dhaa() {
     let cache = build_cache();
     assert_eq!(derive_conj_gana(&cache, "dhā", "3", "prathama", "ekavacana"), "dadhāti");
+    assert_eq!(derive_conj_gana(&cache, "dhā", "3", "prathama", "dvivacana"), "dhattaḥ");
+    assert_eq!(derive_conj_gana(&cache, "dhā", "3", "prathama", "bahuvacana"), "dadhati");
 }
 
 #[tokio::test]
