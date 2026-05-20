@@ -11,7 +11,7 @@ The conjugation engine derives verb forms through a 5-layer pipeline. Adding a n
 | Tiṅ selection (Layer 1) | `data/tin-suffix.json` | 9 entries per lakāra × pada |
 | Vikaraṇa insertion (Layer 2) | `data/vikarana-rule.json` | 1 entry per gaṇa × lakāra type |
 | Pre-vikaraṇa aṅga ops (Layer 3) | `data/verb-anga-rule.json` | guṇa, vṛddhi, semivowel rules |
-| Pre-tiṅ operations (Layer 4) | `data/verb-anga-rule.json` | dīrgha, coalescence, guṇa_anga_final, yaṇ, śnā alternation |
+| Pre-tiṅ operations (Layer 4) | `data/verb-anga-rule.json` | dīrgha, coalescence, guṇa_anga_final, yaṇ, śnā alternation, consonant_junction |
 | Tripādī (Layer 5) | `data/tripadi-rule.json` | shared with declension |
 | Engine source | `src/engine/conjugation.rs` | only if new sub-pass types needed |
 | GUI conjugation picker | `src/gui/conjugation.rs` | add to gaṇa/lakāra dropdowns |
@@ -25,10 +25,13 @@ Input: (dhātu, gaṇa, lakāra, pada, puruṣa, vacana)
 Layer 1: lakāra + puruṣa + vacana + pada → select tiṅ suffix
 Layer 2: gaṇa + lakāra_type → select vikaraṇa, compute ṅit status
 Layer 3: dhātu + vikaraṇa → guṇa/vṛddhi of dhātu vowel, semivowel substitution
-           (gated by ṅit — blocked for gaṇas 4, 5, 6, 8, 9)
-         → form aṅga = dhātu + vikaraṇa
+           (gated by ṅit — blocked for gaṇas 4, 5, 6, 7, 8, 9)
+         → form aṅga = dhātu + vikaraṇa (suffix mode)
+                     or dhātu_prefix + vikaraṇa + dhātu_final (infix mode, gaṇa 7)
+         → allopa: infix na → n before non-pit tiṅ (6.4.111)
 Layer 4: aṅga + tiṅ → dīrgha, coalescence, guṇa of aṅga-final,
-           yaṇ at junction, śnā alternation, ṇatva
+           yaṇ at junction, śnā alternation, ṇatva,
+           consonant junction (8.4.55: d+t→tt, dh+t→ddh)
 Layer 5: word-final → tripādī (s→r→ḥ, etc.)
 
 Output: final form + trace
@@ -211,6 +214,77 @@ Three entries cover the alternation:
 - `condition_suffix_pit: false, condition_suffix_initial_type: "consonant"` → nī
 - `condition_suffix_pit: false, condition_suffix_initial_type: "vowel"` → n
 
+## Engine internals — what you need to know without reading the code
+
+### Key variables through the pipeline
+
+`derive_conjugation` maintains these variables across all layers:
+
+| Variable | Type | Set when | Used by |
+|---|---|---|---|
+| `current_dhatu` | `String` | Layer 1 (from input), mutated by Layer 3 guṇa/semivowel | Layer 3, aṅga formation |
+| `current_tin` | `String` | Layer 1 (tiṅ suffix), emptied by coalescence/junction | Layer 4 sub-passes, final combine |
+| `vikarana` | `String` | Layer 2 (suffix field from rule) | Layer 3 traces, aṅga formation |
+| `vikarana_name` | `String` | Layer 2 (vikarana_name field) | śnā/śnam alternation matching |
+| `anga` | `String` | After Layer 3: `dhatu + vikarana` (suffix) or `prefix + vikarana + final_consonant` (infix) | Layer 4 sub-passes, final combine |
+| `vikarana_byte_offset` | `usize` | Aṅga formation — byte offset where vikaraṇa starts in `anga` | ṇatva (to find the 'n') |
+| `tin_is_pit` | `bool` | Layer 1 (from tiṅ rule `is_pit` field) | śnā/śnam alternation, guṇa gating |
+| `vikarana_is_nit` | `bool` | Layer 2 (sārvadhātuka && !pit) | Layer 3 guṇa/vṛddhi gate |
+| `is_infix` | `bool` | Layer 2 (insertion_mode == "infix") | Aṅga formation, trace formatting |
+
+### Sub-pass code pattern
+
+Every Layer 4 sub-pass follows the same structure. To add a new one, copy this pattern:
+
+```rust
+// Guard: skip if tiṅ already consumed by coalescence/junction
+if !current_tin.is_empty() {
+    for (params, rule) in parsed_anga
+        .iter()
+        .filter(|(p, _)| p.stage == "pre_tin" && p.rule_type == "YOUR_RULE_TYPE")
+    {
+        // Match conditions against anga/tin state
+        if /* condition matches */ {
+            let old_state = format!("{} + {}", anga, current_tin);
+            // Apply transformation to anga and/or current_tin
+            step_num += 1;
+            trace.push(TraceStep {
+                step: step_num,
+                rule: rule.statement.clone(),
+                rule_ref: sutra_ref(&params.sutra),
+                input_state: old_state,
+                output_state: format!("{} + {}", anga, current_tin),
+            });
+            break; // first-match-wins
+        }
+    }
+}
+```
+
+**Junction sub-passes** (coalescence, consonant_junction) are special: when they fire, they merge the junction into `anga` and set `current_tin = String::new()`. This causes all subsequent sub-passes to skip (via the `!current_tin.is_empty()` guard). The final combine step then just uses `anga` as-is.
+
+### Aṅga formation modes
+
+After Layer 3 (pre-vikaraṇa operations), the aṅga is formed. Two modes:
+
+**Suffix (default):** `anga = current_dhatu + vikarana`, `vikarana_byte_offset = current_dhatu.len()`
+
+**Infix** (`insertion_mode: "infix"`): Split dhātu at final phoneme:
+```
+anga = dhatu_prefix + vikarana + dhatu_final_consonant
+vikarana_byte_offset = dhatu_prefix.len()
+```
+Allopa (6.4.111) fires during infix formation: before non-pit tiṅ, the trailing 'a' of the vikaraṇa is dropped (na→n).
+
+### Algorithmic vs rule-driven operations
+
+Most operations are rule-driven (JSON data + generic sub-pass code). Two are algorithmic (hardcoded in the engine):
+
+- **ṇatva** (8.4.2): checks `vikarana.starts_with('n')`, then scans `anga[..vikarana_byte_offset]` for triggers (r/ṣ/ṛ/ṝ). Replaces the first 'n' after the offset with 'ṇ'.
+- **Upadha guṇa** (7.3.84): when vikaraṇa is ṅit and tiṅ is pit, applies guṇa to the penultimate phoneme of the aṅga.
+
+Both run after all rule-driven sub-passes and before consonant junction.
+
 ## Engine structs (Rust)
 
 In `src/engine/conjugation.rs`:
@@ -234,13 +308,15 @@ struct VikaranaRule {
     lakara_type: Option<String>,
     it_markers: Vec<String>,    // determines ṅit and ṇit status
     sutra: String,
+    insertion_mode: Option<String>, // None/"suffix" = append; "infix" = before final consonant
 }
 
 struct VerbAngaRule {
     stage: String,              // "pre_vikarana" or "pre_tin"
     rule_type: String,          // "guna", "vrddhi", "semivowel", "dirgha",
                                 // "coalescence", "guna_anga_final",
-                                // "yan_junction", "sna_alternation"
+                                // "yan_junction", "sna_alternation",
+                                // "consonant_junction"
     condition_dhatu_final: Option<String>,
     condition_dhatu_vowel: Option<String>,
     position: Option<String>,
@@ -263,6 +339,7 @@ Same tokenizer as declension (`src/engine/phoneme.rs`). Key functions used by co
 
 - `tokenize(s)` → `Vec<&str>` — phoneme-aware split
 - `first_phoneme(s)` → `Option<&str>` — used for tiṅ-initial consonant/vowel checks
+- `last_phoneme(s)` → `Option<&str>` — used for aṅga-final in junction matching
 - `is_vowel(phoneme)` → bool — checks against `VOWEL_PHONEMES`
 - `replace_medial_vowel(dhatu, from, to)` → replaces first non-initial non-final vowel
 
@@ -362,3 +439,8 @@ async fn conjugation_gana5_su() {
 4. **Consonant upadha**: for ṇit-marker vikaraṇas (gaṇa 10), when upadha is a consonant (not a vowel), neither guṇa nor vṛddhi applies (√cint → cint, not caint or cent)
 5. **Pre-tiṅ guṇa gating**: aṅga-final guṇa (u→o for gaṇas 5/8) only fires when the **tiṅ itself** is pit. Non-pit sārvadhātuka tiṅ is ṅit by 1.2.4, blocking guṇa
 6. **Coalescence empties tiṅ**: when coalescence fires (a+a→a), it combines aṅga and tiṅ into one string and sets `current_tin` to empty. Subsequent sub-passes check `!current_tin.is_empty()` and skip
+7. **Empty vikaraṇa works without engine changes**: gaṇa 2 (luk) uses `suffix: ""`. The concatenation `dhatu + ""` just gives the dhātu. Preserve śap's it-markers `["ś", "p"]` per sthānivat (1.1.56) so guṇa isn't incorrectly blocked
+8. **Consonant junction also empties tiṅ**: same pattern as coalescence — when a junction rule fires (dt→tt, dht→ddh), the merged result goes into `anga` and `current_tin` is emptied
+9. **ṇatva uses vikarana_byte_offset, not dhatu length**: for infix mode, the vikaraṇa starts at `prefix.len()`, not `current_dhatu.len()`. The offset variable tracks this for both modes
+10. **Infix allopa is pit-gated, not vowel-gated**: the doc originally said na→n "before vowel-initial suffix" but it actually fires for ALL non-pit tiṅ (6.4.111). Consonant-initial non-pit tiṅ also gets the reduced form (dvivacana "taḥ" is non-pit → na→n)
+11. **Aspiration displacement** (dh+t→ddh): this is phonologically complex (8.4.55 + aspiration transfer) but implementable as a single junction rule. Don't try to model the intermediate steps
