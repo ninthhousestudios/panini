@@ -968,6 +968,23 @@ async fn conjugation_gana2_as() {
     assert_eq!(derive_conj_gana(&cache, "as", "2", "prathama", "ekavacana"), "asti");
 }
 
+// --- Gaṇa 7 (rudhādi/śnam infix) ---
+
+#[tokio::test]
+async fn conjugation_gana7_bhid() {
+    let cache = build_cache();
+    assert_eq!(derive_conj_gana(&cache, "bhid", "7", "prathama", "ekavacana"), "bhinatti");
+    assert_eq!(derive_conj_gana(&cache, "bhid", "7", "prathama", "bahuvacana"), "bhindanti");
+}
+
+#[tokio::test]
+async fn conjugation_gana7_rudh() {
+    let cache = build_cache();
+    assert_eq!(derive_conj_gana(&cache, "rudh", "7", "prathama", "ekavacana"), "ruṇaddhi");
+    assert_eq!(derive_conj_gana(&cache, "rudh", "7", "prathama", "dvivacana"), "ruṇddhaḥ");
+    assert_eq!(derive_conj_gana(&cache, "rudh", "7", "prathama", "bahuvacana"), "ruṇdhanti");
+}
+
 #[tokio::test]
 async fn conjugation_gana2_ad() {
     let cache = build_cache();

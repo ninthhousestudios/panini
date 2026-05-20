@@ -61,6 +61,19 @@
   },
   {
     "params": {
+      "gana": "7",
+      "vikarana_name": "śnam",
+      "suffix": "na",
+      "it_markers": ["ś", "m"],
+      "lakara_type": "sārvadhātuka",
+      "insertion_mode": "infix",
+      "sutra": "3.1.78",
+      "sutra_position": "03.01.078"
+    },
+    "statement": "rudhādi (class 7): śnam vikaraṇa → na infixed (rudhādibhyaḥ śnam, Aṣṭ. 3.1.78)"
+  },
+  {
+    "params": {
       "gana": "8",
       "vikarana_name": "u",
       "suffix": "u",

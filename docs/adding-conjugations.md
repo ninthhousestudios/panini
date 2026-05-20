@@ -275,6 +275,7 @@ Same tokenizer as declension (`src/engine/phoneme.rs`). Key functions used by co
 | 4 (divādi) | śyan | ya | ṅit blocks guṇa |
 | 5 (svādi) | śnu | nu | ṅit blocks pre-vik guṇa; pre-tiṅ guṇa u→o (pit only), yaṇ u→v |
 | 6 (tudādi) | śa | a | ṅit blocks guṇa |
+| 7 (rudhādi) | śnam | na (infixed) | infix before final consonant; allopa na→n (6.4.111); ṇatva; consonant junction |
 | 8 (tanādi) | u | u | same as gaṇa 5 |
 | 9 (kryādi) | śnā | nā | ṅit blocks guṇa; śnā alternation nā/nī/n; ṇatva |
 | 10 (curādi) | ṇic | aya | guṇa/vṛddhi branching by upadha |
@@ -286,7 +287,6 @@ Lakāra: laṭ only. Pada: parasmaipada only.
 | Gaṇa | Why deferred |
 |---|---|
 | 3 (juhotyādi) | Reduplication (abhyāsa) — needs reduplication engine |
-| 7 (rudhādi) | Infixed vikaraṇa (nasal infix before final consonant) — needs infix mechanism |
 
 Other lakāras (loṭ, laṅ, liṭ, etc.) need separate tiṅ suffix entries and may need lakāra-specific aṅga rules.
 

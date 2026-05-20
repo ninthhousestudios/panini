@@ -42,6 +42,8 @@ struct VikaranaRule {
     it_markers: Vec<String>,
     #[serde(default)]
     sutra: String,
+    #[serde(default)]
+    insertion_mode: Option<String>,
 }
 
 fn lakara_to_type(lakara: &str) -> &'static str {
@@ -219,15 +221,29 @@ pub fn derive_conjugation(
         is_sarvadhatuka && !is_pit
     };
     let vikarana_is_nit_marker = vik_params.it_markers.iter().any(|m| m == "ṇ");
+    let is_infix = vik_params.insertion_mode.as_deref() == Some("infix");
 
     step_num += 1;
-    trace.push(TraceStep {
-        step: step_num,
-        rule: vik_rule.statement.clone(),
-        rule_ref: sutra_ref(&vik_params.sutra),
-        input_state: format!("{} + {}", current_dhatu, current_tin),
-        output_state: format!("{} + {} + {}", current_dhatu, vikarana, current_tin),
-    });
+    if is_infix {
+        let tokens = tokenize(&current_dhatu);
+        let final_c = tokens.last().map_or("", |t| *t);
+        let prefix = &current_dhatu[..current_dhatu.len() - final_c.len()];
+        trace.push(TraceStep {
+            step: step_num,
+            rule: vik_rule.statement.clone(),
+            rule_ref: sutra_ref(&vik_params.sutra),
+            input_state: format!("{} + {}", current_dhatu, current_tin),
+            output_state: format!("{}{}{} + {}", prefix, vikarana, final_c, current_tin),
+        });
+    } else {
+        trace.push(TraceStep {
+            step: step_num,
+            rule: vik_rule.statement.clone(),
+            rule_ref: sutra_ref(&vik_params.sutra),
+            input_state: format!("{} + {}", current_dhatu, current_tin),
+            output_state: format!("{} + {} + {}", current_dhatu, vikarana, current_tin),
+        });
+    }
 
     // --- Layer 3: Pre-vikaraṇa aṅga operations ---
     let parsed_anga: Vec<(VerbAngaRule, &CachedRule)> = verb_anga_rules
@@ -359,7 +375,38 @@ pub fn derive_conjugation(
     } // end if !skip_guna_vrddhi
 
     // Form the aṅga (dhātu + vikaraṇa)
-    let mut anga = format!("{}{}", current_dhatu, vikarana);
+    let (mut anga, vikarana_byte_offset) = if is_infix {
+        let tokens = tokenize(&current_dhatu);
+        let final_c = tokens.last().map_or("", |t| *t);
+        let prefix = &current_dhatu[..current_dhatu.len() - final_c.len()];
+        let prefix_len = prefix.len();
+
+        // 6.4.111 śnasor allopaḥ: elide 'a' of infix before non-pit tiṅ
+        let use_allopa = !tin_params.is_pit && vikarana.ends_with('a');
+        let actual_infix = if use_allopa {
+            &vikarana[..vikarana.len() - 1]
+        } else {
+            vikarana.as_str()
+        };
+
+        let formed = format!("{}{}{}", prefix, actual_infix, final_c);
+
+        if use_allopa {
+            step_num += 1;
+            trace.push(TraceStep {
+                step: step_num,
+                rule: format!("{} → {} (allopaḥ, Aṣṭ. 6.4.111)", vikarana, actual_infix),
+                rule_ref: Some("6.4.111".into()),
+                input_state: format!("{}{}{} + {}", prefix, vikarana, final_c, current_tin),
+                output_state: format!("{} + {}", formed, current_tin),
+            });
+        }
+
+        (formed, prefix_len)
+    } else {
+        let offset = current_dhatu.len();
+        (format!("{}{}", current_dhatu, vikarana), offset)
+    };
 
     let vikarana_name = vik_params.vikarana_name.clone();
     let tin_is_pit = tin_params.is_pit;
@@ -582,17 +629,16 @@ pub fn derive_conjugation(
 
     // ṇatva: n → ṇ in vikaraṇa-derived portion when dhātu has r/ṣ/ṛ/ṝ trigger (8.4.2)
     if vikarana.starts_with('n') {
-        let triggers_natva = tokenize(&current_dhatu)
+        let triggers_natva = tokenize(&anga[..vikarana_byte_offset])
             .iter()
             .any(|ph| matches!(*ph, "ṛ" | "ṝ" | "r" | "ṣ"));
         if triggers_natva {
-            let dhatu_len = current_dhatu.len();
-            let vik_portion = &anga[dhatu_len..];
+            let vik_portion = &anga[vikarana_byte_offset..];
             if vik_portion.starts_with('n') {
                 let old_anga = anga.clone();
                 anga = format!(
                     "{}{}",
-                    &anga[..dhatu_len],
+                    &anga[..vikarana_byte_offset],
                     vik_portion.replacen("n", "ṇ", 1)
                 );
                 step_num += 1;
