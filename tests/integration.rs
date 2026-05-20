@@ -938,6 +938,15 @@ async fn conjugation_gana8_tan() {
     assert_eq!(derive_conj_gana(&cache, "tan", "8", "prathama", "bahuvacana"), "tanvanti");
 }
 
+#[tokio::test]
+async fn conjugation_gana8_kr() {
+    let cache = build_cache();
+    // √kṛ ekavacana: upadha ṛ gets guṇa (→ ar) before pit tiṅ, aṅga-final u → o
+    assert_eq!(derive_conj_gana(&cache, "kṛ", "8", "prathama", "ekavacana"), "karoti");
+    // √kṛ dvivacana: tiṅ taḥ is NOT pit → no upadha guṇa, no aṅga-final guṇa
+    assert_eq!(derive_conj_gana(&cache, "kṛ", "8", "prathama", "dvivacana"), "kṛutaḥ");
+}
+
 // --- Gaṇa 9 (kryādi/śnā) ---
 
 #[tokio::test]

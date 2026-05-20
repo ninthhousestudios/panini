@@ -431,6 +431,49 @@ pub fn derive_conjugation(
         }
     }
 
+    // Sub-pass: guṇa of aṅga upadha before pit tiṅ (7.3.84)
+    // When vikaraṇa is ṅit, pre-vikaraṇa root guṇa is blocked. But pit tiṅ
+    // independently triggers guṇa of the aṅga's upadha (penultimate phoneme)
+    // if it's an iK vowel. E.g. √kṛ + u + ti: aṅga kṛu, upadha ṛ → ar → karoti.
+    // Only needed when vikaraṇa is ṅit — otherwise pre-vikaraṇa guṇa already handled it.
+    if !current_tin.is_empty() && tin_is_pit && vikarana_is_nit {
+        let tokens = tokenize(&anga);
+        if tokens.len() >= 2 {
+            let upadha_idx = tokens.len() - 2;
+            let upadha = tokens[upadha_idx].to_string();
+            let guna_replacement = match upadha.as_str() {
+                "i" | "ī" => Some("e"),
+                "u" | "ū" => Some("o"),
+                "ṛ" | "ṝ" => Some("ar"),
+                "ḷ" => Some("al"),
+                _ => None,
+            };
+            if let Some(replacement) = guna_replacement {
+                let old_anga = anga.clone();
+                let mut new_anga = String::new();
+                for (j, tok) in tokens.iter().enumerate() {
+                    if j == upadha_idx {
+                        new_anga.push_str(replacement);
+                    } else {
+                        new_anga.push_str(tok);
+                    }
+                }
+                anga = new_anga;
+                step_num += 1;
+                trace.push(TraceStep {
+                    step: step_num,
+                    rule: format!(
+                        "{} → {} (guṇa of upadha before pit sārvadhātuka, Aṣṭ. 7.3.84)",
+                        upadha, replacement
+                    ),
+                    rule_ref: sutra_ref("7.3.84"),
+                    input_state: format!("{} + {}", old_anga, current_tin),
+                    output_state: format!("{} + {}", anga, current_tin),
+                });
+            }
+        }
+    }
+
     // Sub-pass: guṇa of aṅga-final vowel before consonant-initial pit tiṅ
     // Non-pit sārvadhātuka tiṅ is ṅit (1.2.4), which blocks guṇa (1.1.5)
     if !current_tin.is_empty() && tin_is_pit {
