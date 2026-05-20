@@ -349,7 +349,7 @@ Same tokenizer as declension (`src/engine/phoneme.rs`). Key functions used by co
 |---|---|---|---|
 | 1 (bhvādi) | śap | a | guṇa + semivowel + dīrgha + coalescence |
 | 2 (adādi) | luk | (empty) | śap deleted (2.4.72); consonant junction sandhi (8.4.55) |
-| 3 (juhotyādi) | ślu | (empty) | śap deleted (2.4.75); reduplication (6.1.1); abhyāsa: hrasva (7.4.59), halādiḥ śeṣaḥ (7.4.60), kuhoś cuḥ (7.4.62); jhi→ati (7.1.4) |
+| 3 (juhotyādi) | ślu | (empty) | śap deleted (2.4.75); reduplication (6.1.1); abhyāsa: hrasva (7.4.59), halādiḥ śeṣaḥ (7.4.60), kuhoś cuḥ (7.4.62); jhi→ati (7.1.4); ā-lopa for ghu roots before ṅit (6.4.64); aspiration throwback (8.4.55) |
 | 4 (divādi) | śyan | ya | ṅit blocks guṇa |
 | 5 (svādi) | śnu | nu | ṅit blocks pre-vik guṇa; pre-tiṅ guṇa u→o (pit only), yaṇ u→v |
 | 6 (tudādi) | śa | a | ṅit blocks guṇa |
