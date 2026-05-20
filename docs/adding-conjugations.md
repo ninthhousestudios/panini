@@ -349,6 +349,7 @@ Same tokenizer as declension (`src/engine/phoneme.rs`). Key functions used by co
 |---|---|---|---|
 | 1 (bhvādi) | śap | a | guṇa + semivowel + dīrgha + coalescence |
 | 2 (adādi) | luk | (empty) | śap deleted (2.4.72); consonant junction sandhi (8.4.55) |
+| 3 (juhotyādi) | ślu | (empty) | śap deleted (2.4.75); reduplication (6.1.1); abhyāsa: hrasva (7.4.59), halādiḥ śeṣaḥ (7.4.60), kuhoś cuḥ (7.4.62); jhi→ati (7.1.4) |
 | 4 (divādi) | śyan | ya | ṅit blocks guṇa |
 | 5 (svādi) | śnu | nu | ṅit blocks pre-vik guṇa; pre-tiṅ guṇa u→o (pit only), yaṇ u→v |
 | 6 (tudādi) | śa | a | ṅit blocks guṇa |
@@ -360,10 +361,6 @@ Same tokenizer as declension (`src/engine/phoneme.rs`). Key functions used by co
 Lakāra: laṭ only. Pada: parasmaipada only.
 
 ## Not yet supported (deferred)
-
-| Gaṇa | Why deferred |
-|---|---|
-| 3 (juhotyādi) | Reduplication (abhyāsa) — needs reduplication engine |
 
 Other lakāras (loṭ, laṅ, liṭ, etc.) need separate tiṅ suffix entries and may need lakāra-specific aṅga rules.
 
@@ -443,4 +440,5 @@ async fn conjugation_gana5_su() {
 8. **Consonant junction also empties tiṅ**: same pattern as coalescence — when a junction rule fires (dt→tt, dht→ddh), the merged result goes into `anga` and `current_tin` is emptied
 9. **ṇatva uses vikarana_byte_offset, not dhatu length**: for infix mode, the vikaraṇa starts at `prefix.len()`, not `current_dhatu.len()`. The offset variable tracks this for both modes
 10. **Infix allopa is pit-gated, not vowel-gated**: the doc originally said na→n "before vowel-initial suffix" but it actually fires for ALL non-pit tiṅ (6.4.111). Consonant-initial non-pit tiṅ also gets the reduced form (dvivacana "taḥ" is non-pit → na→n)
-11. **Aspiration displacement** (dh+t→ddh): this is phonologically complex (8.4.55 + aspiration transfer) but implementable as a single junction rule. Don't try to model the intermediate steps
+11. **Layer 3 guṇa skipped for empty vikaraṇa**: when vikaraṇa is "" (gaṇas 2/3), pre-vikaraṇa guṇa is entirely skipped. Guṇa fires through Layer 4 guna_anga_final instead (pit-gated). This prevents medial guṇa from incorrectly targeting the abhyāsa vowel in reduplicated forms (e.g., "juhu" would become "johu" if medial guṇa fired)
+12. **Aspiration displacement** (dh+t→ddh): this is phonologically complex (8.4.55 + aspiration transfer) but implementable as a single junction rule. Don't try to model the intermediate steps

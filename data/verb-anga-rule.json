@@ -195,6 +195,18 @@
   {
     "params": {
       "stage": "pre_tin",
+      "rule_type": "guna_anga_final",
+      "condition_anga_final": "ī",
+      "input": "ī",
+      "output": "e",
+      "sutra": "7.3.84",
+      "sutra_position": "07.03.084"
+    },
+    "statement": "ī → e (guṇa) at aṅga-final before consonant-initial tiṅ (sārvaddhātukārdhadhātukayoḥ, Aṣṭ. 7.3.84)"
+  },
+  {
+    "params": {
+      "stage": "pre_tin",
       "rule_type": "yan_junction",
       "condition_anga_final": "u",
       "input": "u",
@@ -203,6 +215,18 @@
       "sutra_position": "06.01.077"
     },
     "statement": "u → v before vowel-initial tiṅ (yaṇ, ikaḥ yaṇ aci, Aṣṭ. 6.1.77)"
+  },
+  {
+    "params": {
+      "stage": "pre_tin",
+      "rule_type": "yan_junction",
+      "condition_anga_final": "ī",
+      "input": "ī",
+      "output": "y",
+      "sutra": "6.1.77",
+      "sutra_position": "06.01.077"
+    },
+    "statement": "ī → y before vowel-initial tiṅ (yaṇ, ikaḥ yaṇ aci, Aṣṭ. 6.1.77)"
   },
   {
     "params": {

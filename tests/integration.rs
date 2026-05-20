@@ -992,3 +992,27 @@ async fn conjugation_gana2_ad() {
     assert_eq!(derive_conj_gana(&cache, "ad", "2", "prathama", "dvivacana"), "attaḥ");
     assert_eq!(derive_conj_gana(&cache, "ad", "2", "prathama", "bahuvacana"), "adanti");
 }
+
+// --- Gaṇa 3 (juhotyādi/ślu + reduplication) ---
+
+#[tokio::test]
+async fn conjugation_gana3_hu() {
+    let cache = build_cache();
+    assert_eq!(derive_conj_gana(&cache, "hu", "3", "prathama", "ekavacana"), "juhoti");
+    assert_eq!(derive_conj_gana(&cache, "hu", "3", "prathama", "dvivacana"), "juhutaḥ");
+    assert_eq!(derive_conj_gana(&cache, "hu", "3", "prathama", "bahuvacana"), "juhvati");
+}
+
+#[tokio::test]
+async fn conjugation_gana3_dhaa() {
+    let cache = build_cache();
+    assert_eq!(derive_conj_gana(&cache, "dhā", "3", "prathama", "ekavacana"), "dadhāti");
+}
+
+#[tokio::test]
+async fn conjugation_gana3_bhii() {
+    let cache = build_cache();
+    assert_eq!(derive_conj_gana(&cache, "bhī", "3", "prathama", "ekavacana"), "bibheti");
+    assert_eq!(derive_conj_gana(&cache, "bhī", "3", "prathama", "dvivacana"), "bibhītaḥ");
+    assert_eq!(derive_conj_gana(&cache, "bhī", "3", "prathama", "bahuvacana"), "bibhyati");
+}

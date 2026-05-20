@@ -25,6 +25,18 @@
   },
   {
     "params": {
+      "gana": "3",
+      "vikarana_name": "ślu",
+      "suffix": "",
+      "it_markers": ["ś", "p"],
+      "lakara_type": "sārvadhātuka",
+      "sutra": "2.4.75",
+      "sutra_position": "02.04.075"
+    },
+    "statement": "juhotyādi (class 3): śap → ślu (juhotyādibhyaḥ śluḥ, Aṣṭ. 2.4.75)"
+  },
+  {
+    "params": {
       "gana": "4",
       "vikarana_name": "śyan",
       "suffix": "ya",

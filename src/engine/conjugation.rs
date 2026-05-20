@@ -245,6 +245,74 @@ pub fn derive_conjugation(
         });
     }
 
+    // --- Dvitva (reduplication) for gaṇa 3 (6.1.1) ---
+    if input.gana == "3" {
+        let tokens = tokenize(&current_dhatu);
+        let mut abhyasa = String::new();
+        for (i, &tok) in tokens.iter().enumerate() {
+            if is_vowel(tok) {
+                let short = match tok {
+                    "ā" => "a",
+                    "ī" => "i",
+                    "ū" => "u",
+                    "ṝ" => "ṛ",
+                    other => other,
+                };
+                abhyasa.push_str(short);
+                break;
+            } else if i == 0 {
+                let deaspirated = match tok {
+                    "kh" => "k",
+                    "gh" => "g",
+                    "ch" => "c",
+                    "jh" => "j",
+                    "ṭh" => "ṭ",
+                    "ḍh" => "ḍ",
+                    "th" => "t",
+                    "dh" => "d",
+                    "ph" => "p",
+                    "bh" => "b",
+                    other => other,
+                };
+                let replaced = match deaspirated {
+                    "k" => "c",
+                    "g" => "j",
+                    "ṅ" => "ñ",
+                    "h" => "j",
+                    other => other,
+                };
+                abhyasa.push_str(replaced);
+            }
+        }
+        let old_dhatu = current_dhatu.clone();
+        current_dhatu = format!("{}{}", abhyasa, old_dhatu);
+        step_num += 1;
+        trace.push(TraceStep {
+            step: step_num,
+            rule: format!(
+                "{} → {} + {} (dvitva + abhyāsa, Aṣṭ. 6.1.1, 7.4.59-60, 7.4.62)",
+                old_dhatu, abhyasa, old_dhatu
+            ),
+            rule_ref: Some("6.1.1".into()),
+            input_state: format!("{} + {}", old_dhatu, current_tin),
+            output_state: format!("{} + {}", current_dhatu, current_tin),
+        });
+    }
+
+    // 7.1.4 ad abhyastāt: jhi → ati after reduplicated stem
+    if input.gana == "3" && pratyaya_name == "jhi" {
+        let old_tin = current_tin.clone();
+        current_tin = "ati".to_string();
+        step_num += 1;
+        trace.push(TraceStep {
+            step: step_num,
+            rule: "jhi → ati after abhyasta (ad abhyastāt, Aṣṭ. 7.1.4)".into(),
+            rule_ref: Some("7.1.4".into()),
+            input_state: format!("{} + {}", current_dhatu, old_tin),
+            output_state: format!("{} + {}", current_dhatu, current_tin),
+        });
+    }
+
     // --- Layer 3: Pre-vikaraṇa aṅga operations ---
     let parsed_anga: Vec<(VerbAngaRule, &CachedRule)> = verb_anga_rules
         .iter()
@@ -259,6 +327,7 @@ pub fn derive_conjugation(
     // For ṇit vikaraṇas (gaṇa 10): vṛddhi when upadha is dīrgha vowel,
     // guṇa when upadha is laghu vowel, nothing when upadha is consonant.
     let skip_guna_vrddhi = vikarana_is_nit
+        || vikarana.is_empty()
         || (vikarana_is_nit_marker && !upadha_is_vowel(&current_dhatu));
     if !skip_guna_vrddhi {
         let use_vrddhi = vikarana_is_nit_marker && !is_upadha_laghu(&current_dhatu);

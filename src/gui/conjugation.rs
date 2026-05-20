@@ -25,8 +25,8 @@ const VACANA_LABELS: [(&str, &str); 3] = [
     ("bahuvacana", "bahuvacana"),
 ];
 
-const KNOWN_DHATUS: &[&str] = &["bhū", "nī", "budh", "paṭh", "ji"];
-const GANAS: &[&str] = &["1"];
+const KNOWN_DHATUS: &[&str] = &["bhū", "nī", "budh", "paṭh", "ji", "hu", "dhā", "bhī"];
+const GANAS: &[&str] = &["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
 #[derive(Default)]
 pub struct State {
